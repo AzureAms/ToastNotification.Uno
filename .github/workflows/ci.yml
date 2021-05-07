@@ -64,6 +64,30 @@ jobs:
     - name: Run tests
       run: dotnet test /p:Configuration=$env:BUILD_CONFIG /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore --no-build --verbosity normal
 
+    - name: Build nuget packages
+      run: |
+        nuget pack ToastNotification.Uno.nuspec -Version 0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}
+        nuget pack ToastNotification.Uno.Wpf.nuspec -Version 0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}
+        nuget pack ToastNotification.Uno.Wasm.nuspec -Version 0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}
+
+    - name: Publish ToastNotification.Uno
+      uses: actions/upload-artifact@v2
+      with:
+        name: ToastNotification.Uno.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+        path: ToastNotification.Uno.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+
+    - name: PublishToastNotification.Uno.Wpf
+      uses: actions/upload-artifact@v2
+      with:
+        name: ToastNotification.Uno.Wpf.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+        path: ToastNotification.Uno.Wpf.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+
+    - name: Publish ToastNotification.Uno.Wasm
+      uses: actions/upload-artifact@v2
+      with:
+        name: ToastNotification.Uno.Wasm.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+        path: ToastNotification.Uno.Wasm.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+
     - name: Publish
       if: startsWith(github.ref, 'refs/heads/release')
       run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}

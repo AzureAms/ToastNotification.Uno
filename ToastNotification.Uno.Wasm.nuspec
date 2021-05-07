@@ -15,7 +15,6 @@ This package contains extension functions needed for WebAssembly projects to han
     <summary>Basic ToastNotification for the Uno Platform. WebAssembly-specific core functions.</summary>
     <copyright>Copyright (c) 2021 AzureAms Open Source Community</copyright>
     <tags>Notification Uno Wasm</tags>
-    <readme>README.md</readme>
     <repository type="git" url="https://github.com/AzureAms/ToastNotification.Uno" />
     <dependencies>
       <group targetFramework=".NETStandard2.0">
