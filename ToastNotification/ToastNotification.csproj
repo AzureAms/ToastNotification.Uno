@@ -33,5 +33,8 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>ToastNotification.Wpf</_Parameter1>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>ToastNotification.Gtk</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>

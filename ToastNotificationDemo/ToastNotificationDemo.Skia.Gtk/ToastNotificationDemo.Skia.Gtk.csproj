@@ -19,5 +19,8 @@
     <PackageReference Include="Uno.UI.Skia.Gtk" Version="3.7.3" />
     <PackageReference Include="Uno.UI.RemoteControl" Version="3.7.3" Condition="'$(Configuration)'=='Debug'" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ToastNotification.Gtk\ToastNotification.Gtk.csproj" />
+  </ItemGroup>
   <Import Project="..\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems" Label="Shared" />
 </Project>
