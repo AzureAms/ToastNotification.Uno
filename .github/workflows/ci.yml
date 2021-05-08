@@ -41,6 +41,7 @@ jobs:
         Import-Module .\build\GetBuildVersion.psm1
         Write-Host $Env:GITHUB_REF
         $version = GetBuildVersion -VersionString $Env:GITHUB_REF
+        if ($version -eq "0.0.0-preview") { $version = $version+"-${{ github.run_number }}-${{ github.run_id }}" }
         echo "BUILD_VERSION=$version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       shell: pwsh
 
@@ -66,27 +67,27 @@ jobs:
 
     - name: Build nuget packages
       run: |
-        nuget pack ToastNotification.Uno.nuspec -Version 0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}
-        nuget pack ToastNotification.Uno.Wpf.nuspec -Version 0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}
-        nuget pack ToastNotification.Uno.Wasm.nuspec -Version 0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}
+        cd build
+        Import-Module .\TransformNuspec.psm1
+        TransformNuspec -BuildVersion $env:BUILD_VERSION
 
-    - name: Publish ToastNotification.Uno
+    - name: Publish ToastNotification.Uno artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ToastNotification.Uno.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
-        path: ToastNotification.Uno.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+        name: ToastNotification.Uno.${{ env.BUILD_VERSION }}.nupkg
+        path: build/ToastNotification.Uno.${{ env.BUILD_VERSION }}.nupkg
 
-    - name: PublishToastNotification.Uno.Wpf
+    - name: Publish ToastNotification.Uno.Wpf artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ToastNotification.Uno.Wpf.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
-        path: ToastNotification.Uno.Wpf.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+        name: ToastNotification.Uno.Wpf.${{ env.BUILD_VERSION }}.nupkg
+        path: build/ToastNotification.Uno.Wpf.${{ env.BUILD_VERSION }}.nupkg
 
-    - name: Publish ToastNotification.Uno.Wasm
+    - name: Publish ToastNotification.Uno.Wasm artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ToastNotification.Uno.Wasm.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
-        path: ToastNotification.Uno.Wasm.0.0.0-preview-${{ github.run_number }}-${{ github.run_id }}.nupkg
+        name: ToastNotification.Uno.Wasm.${{ env.BUILD_VERSION }}.nupkg
+        path: build/ToastNotification.Uno.Wasm.${{ env.BUILD_VERSION }}.nupkg
 
     - name: Publish
       if: startsWith(github.ref, 'refs/heads/release')
