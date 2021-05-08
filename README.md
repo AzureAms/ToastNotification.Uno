@@ -7,6 +7,7 @@ Basic ToastNotification for the Uno Platform
 | Cross platform | [![CrossPlatformShield](https://shields.io/nuget/vpre/ToastNotification.Uno)](https://www.nuget.org/packages/ToastNotification.Uno) |
 | WPF | [![WpfShield](https://shields.io/nuget/vpre/ToastNotification.Uno.Wpf)](https://www.nuget.org/packages/ToastNotification.Uno.Wpf) |
 | WASM | [![WasmShield](https://shields.io/nuget/vpre/ToastNotification.Uno.Wasm)](https://www.nuget.org/packages/ToastNotification.Uno.Wasm) |
+| GTK | [![WasmShield](https://shields.io/nuget/vpre/ToastNotification.Uno.Gtk)](https://www.nuget.org/packages/ToastNotification.Uno.Gtk) |
 
 ## Usage  
 ```C#
