@@ -72,8 +72,14 @@ namespace Uno.Extras
                 var waitTime = toast.ToastDuration == ToastDuration.Short ? 7000 : 25000;
                 Thread.Sleep(waitTime);
                 Application.Default.WithdrawNotification(id.ToString());
-                if (path != null) File.Delete(path);
-            });
+                
+                // Gnome uses this temporary file to display the icon. We must not delete this file
+                // before the notification withdraws.
+                if (path != null)
+                {
+                    File.Delete(path);
+                }
+            }).ConfigureAwait(false);
         }
 
         private static Task InvokeAsync(Action a)
@@ -90,7 +96,9 @@ namespace Uno.Extras
                 while (Interlocked.Read(ref good) != 1)
                 {
                     while (Gtk.Application.EventsPending())
+                    {
                         Gtk.Application.RunIteration();
+                    }
                 }
             });
         }
