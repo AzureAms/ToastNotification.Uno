@@ -1,7 +1,7 @@
 # Uno.Extras.ToastNotification
 Basic ToastNotification for the Uno Platform
 
-## Usage:  
+## Usage  
 ```C#
 using Uno.Extras;
 
@@ -12,7 +12,7 @@ using Uno.Extras;
             notification.Show();
 ```
 
-## Notes:  
-- Support for GTK is coming soon.  
-- Support for iOS for macOS: Currently unavailable, but pull requests are welcome!  
-- You can extend the functionality of this library to unsupported platforms by creating an extension method `Show(ToastNotification toast)`.  
+## Notes  
+-   Support for GTK is coming soon.  
+-   Support for iOS for macOS: Currently unavailable, but pull requests are welcome!  
+-   You can extend the functionality of this library to unsupported platforms by creating an extension method `Show(ToastNotification toast)`.  

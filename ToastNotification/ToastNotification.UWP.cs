@@ -19,7 +19,7 @@ namespace Uno.Extras
         /// <summary>
         /// Shows the toast notification.
         /// </summary>
-        public async void Show()
+        public async Task Show()
         {
             var builder = new ToastContentBuilder();
             if (AppLogoOverride != null)

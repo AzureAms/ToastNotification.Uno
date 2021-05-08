@@ -56,12 +56,15 @@ $@"
         /// </summary>
         /// <param name="toast"></param>
         /// <returns></returns>
-        public static async void Show(this ToastNotification toast)
+        public static async Task Show(this ToastNotification toast)
         {
             // Mono seems to optimize away unsued functions..
-            if (await DummyFalseStuff()) Report(null);
+            if (await DummyFalseStuff().ConfigureAwait(false))
+            {
+                Report(null);
+            }
 
-            _permission = _permission ?? await QueryPermissionAsync();
+            _permission = _permission ?? await QueryPermissionAsync().ConfigureAwait(false);
             
             if ((bool)_permission)
             {
@@ -70,7 +73,7 @@ $@"
                         '{WebAssemblyRuntime.EscapeJs(toast.Title)}',
                         {{
                             body: '{WebAssemblyRuntime.EscapeJs(toast.Message)}',
-                            {await SetIconIfOveriddenAsync(toast.AppLogoOverride)}
+                            {await SetIconIfOveriddenAsync(toast.AppLogoOverride).ConfigureAwait(false)}
                         }}
                     );
                 ");
@@ -84,13 +87,16 @@ $@"
 
         private static async Task<bool> DummyFalseStuff()
         {
-            await Task.Delay(1);
+            await Task.Delay(1).ConfigureAwait(false);
             return false;
         }
 
         private static async Task<string> SetIconIfOveriddenAsync(BitmapImage image, bool comma = false)
         {
-            if (image == null) return string.Empty;
+            if (image == null)
+            {
+                return string.Empty;
+            }
 
             if (image.UriSource != null)
             {
@@ -119,7 +125,10 @@ $@"
         /// <returns></returns>
         public static Task<bool> QueryPermissionAsync()
         {
-            if (_tcs != null) return _tcs.Task;
+            if (_tcs != null)
+            {
+                return _tcs.Task;
+            }
 
             _tcs = new TaskCompletionSource<bool>();
             WebAssemblyRuntime.InvokeJS(AskNotificationPermission);

@@ -18,18 +18,18 @@ namespace Uno.Extras
     public static class ToastNotificationImplementation
     {
         private static readonly object dummy = new object();
-        private static Guid id = Guid.Empty;
+        private static Guid id = id = Guid.NewGuid();
 
         /// <summary>
         /// Shows the toast notification using native Win32 APIs.
         /// </summary>
         /// <param name="toast">ToatsNotification as created in the native library.</param>
-        public static async void Show(this ToastNotification toast)
+        public static async Task Show(this ToastNotification toast)
         {
-            Icon icon = null;
+            Icon icon;
             if (toast.AppLogoOverride != null)
             {
-                var imageStream = await GetImageStreamAsync(toast.AppLogoOverride);
+                var imageStream = await GetImageStreamAsync(toast.AppLogoOverride).ConfigureAwait(false);
                 var bitmap = (Bitmap)Image.FromStream(imageStream);
                 icon = Icon.FromHandle(bitmap.GetHicon());
             }
@@ -47,7 +47,7 @@ namespace Uno.Extras
                 notifyData.hIcon = GetProcessIcon().Handle;
                 notifyData.szTip = string.Empty;
                 notifyData.uFlags = NotificationIconFlags.Icon | NotificationIconFlags.Tip | NotificationIconFlags.Guid;
-                notifyData.guidItem = id == Guid.Empty ? id = Guid.NewGuid() : id;
+                notifyData.guidItem = id;
 
                 notifyData.AddIcon();
 

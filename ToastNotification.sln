@@ -19,13 +19,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToastNotificationDemo.Wasm"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToastNotificationDemo.macOS", "ToastNotificationDemo\ToastNotificationDemo.macOS\ToastNotificationDemo.macOS.csproj", "{C3DBAFFB-DE8E-4C3E-B21B-DAE7991B4E96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToastNotificationDemo.Skia.Wpf.Host", "ToastNotificationDemo\ToastNotificationDemo.Skia.Wpf.Host\ToastNotificationDemo.Skia.Wpf.Host.csproj", "{5870FEC6-8AEF-44BF-A333-62797E38514A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToastNotificationDemo.Skia.Wpf.Host", "ToastNotificationDemo\ToastNotificationDemo.Skia.Wpf.Host\ToastNotificationDemo.Skia.Wpf.Host.csproj", "{5870FEC6-8AEF-44BF-A333-62797E38514A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToastNotificationDemo.Skia.Wpf", "ToastNotificationDemo\ToastNotificationDemo.Skia.Wpf\ToastNotificationDemo.Skia.Wpf.csproj", "{66A52B1B-E17F-476F-9751-1BB7FD397924}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToastNotificationDemo.Skia.Wpf", "ToastNotificationDemo\ToastNotificationDemo.Skia.Wpf\ToastNotificationDemo.Skia.Wpf.csproj", "{66A52B1B-E17F-476F-9751-1BB7FD397924}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToastNotificationDemo.Skia.Gtk", "ToastNotificationDemo\ToastNotificationDemo.Skia.Gtk\ToastNotificationDemo.Skia.Gtk.csproj", "{763839FB-0B63-4C5C-9AB3-D7BAB6741D37}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToastNotificationDemo.Skia.Gtk", "ToastNotificationDemo\ToastNotificationDemo.Skia.Gtk\ToastNotificationDemo.Skia.Gtk.csproj", "{763839FB-0B63-4C5C-9AB3-D7BAB6741D37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToastNotificationDemo.Skia.Tizen", "ToastNotificationDemo\ToastNotificationDemo.Skia.Tizen\ToastNotificationDemo.Skia.Tizen.csproj", "{C8781950-1F44-4C57-A228-A550691481DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToastNotificationDemo.Skia.Tizen", "ToastNotificationDemo\ToastNotificationDemo.Skia.Tizen\ToastNotificationDemo.Skia.Tizen.csproj", "{C8781950-1F44-4C57-A228-A550691481DE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToastNotification.Wasm", "ToastNotification.Wasm\ToastNotification.Wasm.csproj", "{81A5C407-6728-4B13-AB19-87F2018CD029}"
 EndProject
@@ -33,8 +33,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToastNotification.Wpf", "To
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{10d90bd0-5d8e-4fe1-8e7f-f55a9cb91ba4}*SharedItemsImports = 4
+		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{3937a9b0-3093-4d72-8357-4283e20b24e1}*SharedItemsImports = 4
+		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{4013e7c0-0c65-4dff-b67d-e4a871076cb4}*SharedItemsImports = 4
 		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
 		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{66a52b1b-e17f-476f-9751-1bb7fd397924}*SharedItemsImports = 5
+		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{763839fb-0b63-4c5c-9ab3-d7bab6741d37}*SharedItemsImports = 5
+		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{a3f86b77-177b-4ab7-8a57-42caf2840558}*SharedItemsImports = 5
+		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{c3dbaffb-de8e-4c3e-b21b-dae7991b4e96}*SharedItemsImports = 4
+		ToastNotificationDemo\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems*{c8781950-1f44-4c57-a228-a550691481de}*SharedItemsImports = 5
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU
