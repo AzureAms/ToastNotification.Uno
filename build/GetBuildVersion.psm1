@@ -1,13 +1,23 @@
 Function GetBuildVersion {
     Param (
-        [string]$VersionString
+        [string]$VersionString,
+        [string]$BuildNumber,
+        [string]$BuildId
     )
+
+    # Pull request:
+    if ($VersionString.StartsWith("refs/pull/") -and $VersionString.EndsWith("/merge")) {
+        $VersionString = $VersionString.Substring("refs/pull/".Length)
+        $VersionString = $VersionString.Substring(0, $VersionString.IndexOf("/merge"))
+        return "0.0.0-pullrequest-"+$VersionString+"-"+$BuildId
+    }
 
     # Process through regex
     $VersionString -match "(?<major>\d+)(\.(?<minor>\d+))?(\.(?<patch>\d+))?(\-(?<pre>[0-9A-Za-z\-\.]+))?(\+(?<build>\d+))?" | Out-Null
 
+    # Should be preview
     if ($matches -eq $null) {
-        return "0.0.0-preview"
+        return "0.0.0-preview-"+$BuildNumber+"-"+$BuildId
     }
 
     # Extract the build metadata
