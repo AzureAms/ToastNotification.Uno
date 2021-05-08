@@ -2,12 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>ToastNotification.Uno.Wpf</id>
-    <version>0.0.0-preview-2</version>
+    <version>BUILD_VERSION</version>
     <title>Toast Notifications for Uno Platform</title>
     <authors>trungnt2910</authors>
     <owners></owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <licenseUrl>https://github.com/AzureAms/ToastNotification.Uno/blob/master/LICENSE</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>https://github.com/AzureAms/ToastNotification.Uno</projectUrl>
     <description>Basic ToastNotification for the Uno Platform. Shared code works on UWP, Android, WPF, and WASM.
 
@@ -15,11 +15,10 @@ This package contains extension functions needed for WPF projects to handle noti
     <summary>Basic ToastNotification for the Uno Platform. WPF-specific core functions.</summary>
     <copyright>Copyright (c) 2021 AzureAms Open Source Community</copyright>
     <tags>Notification Uno WPF</tags>
-    <readme>README.md</readme>
     <repository type="git" url="https://github.com/AzureAms/ToastNotification.Uno" />
     <dependencies>
       <group targetFramework=".NETStandard2.0">
-        <dependency id="ToastNotification.Uno" version="0.0.0-preview-1" />
+        <dependency id="ToastNotification.Uno" version="BUILD_VERSION" />
         <dependency id="NETStandard.Library" version="2.0.3" />
         <dependency id="System.Drawing.Common" version="5.0.2" />
         <dependency id="Microsoft.Win32.Registry" version="5.0.0" />
@@ -27,7 +26,7 @@ This package contains extension functions needed for WPF projects to handle noti
     </dependencies>
   </metadata>
   <files>
-    <file src="ToastNotification.Wpf\bin\Release\netstandard2.0\ToastNotification.Wpf.dll" target="lib\netstandard2.0\ToastNotification.Wpf.dll" />
-    <file src="README.md" target="README.md" />
+    <file src="..\ToastNotification.Wpf\bin\Release\netstandard2.0\ToastNotification.Wpf.dll" target="lib\netstandard2.0\ToastNotification.Wpf.dll" />
+    <file src="..\README.md" target="README.md" />
   </files>
 </package>
