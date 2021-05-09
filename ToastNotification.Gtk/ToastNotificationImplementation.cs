@@ -24,7 +24,7 @@ namespace Uno.Extras
         public static async Task Show(this ToastNotification toast)
         {
             var notification = new Notification(toast.Title);
-            notification.Body = toast.Message + "\n\n\n\n.";
+            notification.Body = toast.Message;
 
             string path = null;
 
