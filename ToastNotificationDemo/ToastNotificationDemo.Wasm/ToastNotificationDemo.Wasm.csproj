@@ -18,8 +18,12 @@
     <UpToDateCheckInput Include="..\ToastNotificationDemo.Shared\**\*.xaml" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="WasmScripts\WasmWebClient.js" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="WasmCSS\Fonts.css" />
     <EmbeddedResource Include="WasmScripts\AppManifest.js" />
+    <EmbeddedResource Include="WasmScripts\WasmWebClient.js" />
   </ItemGroup>
   <ItemGroup>
     <LinkerDescriptor Include="LinkerConfig.xml" />
