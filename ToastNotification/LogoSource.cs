@@ -17,10 +17,10 @@ namespace Uno.Extras
     public class LogoSource : IDisposable
     {
         private byte[] _data;
-        private Uri _uri = null;
+        private readonly Uri _uri;
         private StorageFile _file;
         private Stream _stream;
-        private bool _ownsStream = false;
+        private bool _ownsStream;
 
         /// <summary>
         /// Constructs a Logo from a .NET Stream.
@@ -156,7 +156,10 @@ namespace Uno.Extras
                     {
                         _file = null;
                     }
-                    else _file?.DeleteAsync().AsTask().ContinueWith(Check);
+                    else
+                    {
+                        _file?.DeleteAsync().AsTask().ContinueWith(Check);
+                    }
                 }
                 _file?.DeleteAsync().AsTask().ContinueWith(Check);
             }
@@ -178,7 +181,7 @@ namespace Uno.Extras
 
             if (_stream == null)
             {
-                if (new string[] { "ms-appx", "ms-appdata" }.Contains(_uri.Scheme))
+                if (new [] { "ms-appx", "ms-appdata" }.Contains(_uri.Scheme))
                 {
                     var resourceFile = await StorageFile.GetFileFromApplicationUriAsync(_uri);
                     // For some platforms, resources are not stored properly. We do this to get a persistent file.
@@ -189,7 +192,7 @@ namespace Uno.Extras
                     _stream = await _file.OpenStreamForReadAsync();
                     _ownsStream = true;
                 }
-                else if (new string[] {"http", "https"}.Contains(_uri.Scheme))
+                else if (new [] {"http", "https"}.Contains(_uri.Scheme))
                 {
                     var request = WebRequest.Create(_uri);
                     response = await request.GetResponseAsync().ConfigureAwait(false);
@@ -212,7 +215,7 @@ namespace Uno.Extras
             var buffer = new byte[8192];
             while (badCount < 100)
             {
-                var count = await stream.ReadAsync(buffer, 0, buffer.Length);
+                var count = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
                 for (int i = 0; i < count; ++i)
                 {
                     bytes.Add(buffer[i]);

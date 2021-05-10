@@ -102,7 +102,7 @@ $@"
             string data = null;
 
             var uri = image.GetSourceUri();
-            if ((uri == null) || (new string[] { "ms-appx", "ms-appdata" }.Contains(uri.Scheme)))
+            if ((uri == null) || (new [] { "ms-appx", "ms-appdata" }.Contains(uri.Scheme)))
             {
                 data = await image.GetDataUrlAsync().ConfigureAwait(false);
             }

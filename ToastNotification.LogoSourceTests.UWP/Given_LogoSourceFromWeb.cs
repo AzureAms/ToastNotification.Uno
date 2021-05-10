@@ -99,7 +99,7 @@ namespace ToastNotification.LogoSourceTests.UWP
                 image.Dispose();
 
                 // Wait for the file to delete.
-                await Task.Delay(2000);
+                await Task.Delay(2000).ConfigureAwait(false);
 
                 image = null;
                 try

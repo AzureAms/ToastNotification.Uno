@@ -18,12 +18,7 @@ namespace ToastNotification.LogoSourceTests.UWP
             LogoSource image = null;
             try
             {
-                var client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, Helpers.Sample);
-                var response = await client.SendAsync(request);
-                var directData = await response.Content.ReadAsByteArrayAsync();
-                response.Dispose();
-                client.Dispose();
+                var directData = await PrepareDataAsync().ConfigureAwait(false);
 
                 var imageStream = new MemoryStream(directData);
                 image = new LogoSource(imageStream);
@@ -35,7 +30,6 @@ namespace ToastNotification.LogoSourceTests.UWP
 
                 image.Dispose();
                 stream.Dispose();
-                
             }
             finally
             {
@@ -49,12 +43,7 @@ namespace ToastNotification.LogoSourceTests.UWP
             LogoSource image = null;
             try
             {
-                var client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, Helpers.Sample);
-                var response = await client.SendAsync(request);
-                var directData = await response.Content.ReadAsByteArrayAsync();
-                response.Dispose();
-                client.Dispose();
+                var directData = await PrepareDataAsync().ConfigureAwait(false);
 
                 var imageStream = new MemoryStream(directData);
                 image = new LogoSource(imageStream);
@@ -76,12 +65,7 @@ namespace ToastNotification.LogoSourceTests.UWP
             LogoSource image = null;
             try
             {
-                var client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, Helpers.Sample);
-                var response = await client.SendAsync(request);
-                var directData = await response.Content.ReadAsByteArrayAsync();
-                response.Dispose();
-                client.Dispose();
+                var directData = await PrepareDataAsync().ConfigureAwait(false);
 
                 var imageStream = new MemoryStream(directData);
                 image = new LogoSource(imageStream);
@@ -102,12 +86,7 @@ namespace ToastNotification.LogoSourceTests.UWP
             LogoSource image = null;
             try
             {
-                var client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, Helpers.Sample);
-                var response = await client.SendAsync(request);
-                var directData = await response.Content.ReadAsByteArrayAsync();
-                response.Dispose();
-                client.Dispose();
+                var directData = await PrepareDataAsync().ConfigureAwait(false);
 
                 var imageStream = new MemoryStream(directData);
                 image = new LogoSource(imageStream);
@@ -127,7 +106,7 @@ namespace ToastNotification.LogoSourceTests.UWP
                 image = null;
 
                 // Wait for the file to finish deleting...
-                await Task.Delay(2000);
+                await Task.Delay(2000).ConfigureAwait(false);
 
                 try
                 {
@@ -144,6 +123,17 @@ namespace ToastNotification.LogoSourceTests.UWP
             {
                 image?.Dispose();
             }
+        }
+
+        private static async Task<byte[]> PrepareDataAsync()
+        {
+            var client = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Get, Helpers.Sample);
+            var response = await client.SendAsync(request);
+            var data = await response.Content.ReadAsByteArrayAsync();
+            response.Dispose();
+            client.Dispose();
+            return data;
         }
     }
 }
