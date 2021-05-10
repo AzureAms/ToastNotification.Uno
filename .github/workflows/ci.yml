@@ -64,6 +64,15 @@ jobs:
     - name: Run tests
       run: dotnet test /p:Configuration=$env:BUILD_CONFIG /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore --no-build --verbosity normal
 
+    - name: Setup VSTest.exe
+      uses: Malcolmnixon/Setup-VSTest@v4
+
+    - name: Run UWP tests
+      run: |
+        cd ToastNotification.LogoSourceTests.UWP
+        msbuild /p:Platform=x64 /p:Configuration=Debug
+        vstest.console.exe /Platform:x64 bin\x64\Debug\ToastNotification.LogoSourceTests.UWP.build.appxrecipe 
+
     - name: Build nuget packages
       run: |
         cd build
