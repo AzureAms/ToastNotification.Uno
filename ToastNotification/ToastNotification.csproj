@@ -5,18 +5,18 @@
 	Please see https://github.com/unoplatform/uno/issues/3909 for more details.
 	-->
   <PropertyGroup>
-    <TargetFrameworks>UAP10.0;netstandard2.0;xamarinios10;xamarinmac20;monoandroid10.0;</TargetFrameworks>
+    <TargetFrameworks>uap10.0.10240;netstandard2.0;xamarinios10;xamarinmac20;monoandroid10.0;</TargetFrameworks>
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <UseWPF Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">true</UseWPF>
-	<TargetPlatformVersion Condition=" '$(TargetFramework)' == 'UAP10.0' ">10.0.19041.0</TargetPlatformVersion>
-	<TargetPlatformMinVersion Condition=" '$(TargetFramework)' == 'UAP10.0' ">10.0.10240.0</TargetPlatformMinVersion>
+	<TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.10240' ">10.0.19041.0</TargetPlatformVersion>
+	<TargetPlatformMinVersion Condition=" '$(TargetFramework)' == 'uap10.0.10240' ">10.0.10240.0</TargetPlatformMinVersion>
 	<RootNamespace>Uno.Extras</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Condition=" '$(TargetFramework)' != 'UAP10.0' " Include="Uno.UI" Version="3.7.3"/>
+    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.10240' " Include="Uno.UI" Version="3.7.3"/>
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'UAP10.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0.10240' ">
      <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.1" />
   </ItemGroup>
   <ItemGroup>

@@ -30,7 +30,7 @@ This package contains the cross platform elements of ToastNotification. For some
         <dependency id="Uno.UI" version="3.7.3" exclude="Build,Analyzers" />
         <dependency id="NETStandard.Library" version="2.0.3" />
       </group>
-      <group targetFramework="UAP10.0">
+      <group targetFramework="uap10.0.10240">
         <dependency id="Microsoft.Toolkit.Uwp.Notifications" version="7.0.1" />
       </group>
     </dependencies>
@@ -38,7 +38,7 @@ This package contains the cross platform elements of ToastNotification. For some
   <files>
     <file src="..\ToastNotification\bin\Release\monoandroid10.0\ToastNotification.dll" target="lib\MonoAndroid10.0\ToastNotification.dll" />
     <file src="..\ToastNotification\bin\Release\netstandard2.0\ToastNotification.dll" target="lib\netstandard2.0\ToastNotification.dll" />
-    <file src="..\ToastNotification\bin\Release\uap10.0\ToastNotification.dll" target="lib\uap10.0\ToastNotification.dll" />
+    <file src="..\ToastNotification\bin\Release\uap10.0.10240\ToastNotification.dll" target="lib\uap10.0.10240\ToastNotification.dll" />
     <file src="..\ToastNotification\bin\Release\xamarinios10\ToastNotification.dll" target="lib\xamarinios10\ToastNotification.dll" />
     <file src="..\ToastNotification\bin\Release\xamarinmac20\ToastNotification.dll" target="lib\xamarinmac20\ToastNotification.dll" />
     <file src="..\README.md" target="README.md" />
