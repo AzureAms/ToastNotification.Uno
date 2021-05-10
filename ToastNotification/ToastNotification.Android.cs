@@ -70,12 +70,9 @@ namespace Uno.Extras
 
             if (AppLogoOverride != null)
             {
-                var source = new CancellationTokenSource();
-                // This might change...
-                // https://github.com/unoplatform/uno/blob/master/src/Uno.UI/UI/Xaml/Media/ImageSource.Android.cs#L168
-                var bitmap = await AppLogoOverride.Invoke<ImageSource, Task<Bitmap>>("Open", new object[] { source.Token, null, null, null });
+                var stream = await AppLogoOverride.GetStreamAsync().ConfigureAwait(false);
+                var bitmap = await BitmapFactory.DecodeStreamAsync(stream).ConfigureAwait(false);
                 builder.SetLargeIcon(bitmap);
-                source.Dispose();
             }
 
             var notification = builder.Build();

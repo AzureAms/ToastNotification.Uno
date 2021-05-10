@@ -6,9 +6,14 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Background;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
+using Windows.UI.Notifications;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Markup;
 using Windows.UI.Xaml.Media.Imaging;
 using UwpNot = Microsoft.Toolkit.Uwp.Notifications;
 
@@ -16,6 +21,7 @@ namespace Uno.Extras
 {
     public partial class ToastNotification
     {
+        TaskCompletionSource<object> _tcs;
         /// <summary>
         /// Shows the toast notification.
         /// </summary>
@@ -24,7 +30,7 @@ namespace Uno.Extras
             var builder = new ToastContentBuilder();
             if (AppLogoOverride != null)
             {
-                var uri = await GetUriForImage(AppLogoOverride);
+                var uri = AppLogoOverride.GetSourceUri() ?? await AppLogoOverride.GetFileUriAsync().ConfigureAwait(false);
                 builder.AddAppLogoOverride(uri);
             }
 
@@ -34,35 +40,20 @@ namespace Uno.Extras
 
             builder.SetToastDuration(ToastDuration == ToastDuration.Short ? UwpNot.ToastDuration.Short : UwpNot.ToastDuration.Long);
 
-            builder.Show();
-        }
+            _tcs = new TaskCompletionSource<object>();
 
-        private static async Task<Uri> GetUriForImage(BitmapImage image)
-        {
-            if (image.UriSource != null) return image.UriSource;
-
-            // Saves image to Image control, then render it with RenderTargetBitmap.
-            var bitmap = new RenderTargetBitmap();
-            var imageElement = new Image { Source = image };
-            await bitmap.RenderAsync(imageElement);
-
-            var folder = ApplicationData.Current.TemporaryFolder;
-            var fileName = Guid.NewGuid().ToString();
-            var file = await folder.CreateFileAsync(fileName);
-
-            var pixels = await bitmap.GetPixelsAsync();
-
-            using (var stream = await file.OpenAsync(FileAccessMode.ReadWrite))
+            builder.Show(t =>
             {
-                var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
-                byte[] bytes = pixels.ToArray();
-                encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight,
-                                    (uint)bitmap.PixelWidth, (uint)bitmap.PixelHeight,
-                                    200, 200, bytes);
-                await encoder.FlushAsync();
-            }
+                TypedEventHandler<Windows.UI.Notifications.ToastNotification, ToastDismissedEventArgs> handler = (sender, args) => { };
+                handler = (sender, args) =>
+                {
+                    sender.Dismissed -= handler;
+                    _tcs.SetResult(null);
+                };
+                t.Dismissed += handler;
+            });
 
-            return new Uri($"ms-appdata:///temp/{fileName}");
+            await _tcs.Task;
         }
     }
 }

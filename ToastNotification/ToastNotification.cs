@@ -20,7 +20,7 @@ namespace Uno.Extras
         /// <summary>
         /// Application logo. If not set, on some platforms this will be a generic image.
         /// </summary>
-        public BitmapImage AppLogoOverride { get; set; }
+        public LogoSource AppLogoOverride { get; set; }
         /// <summary>
         /// Interval between popup and hiding of toast.
         /// </summary>

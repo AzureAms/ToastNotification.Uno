@@ -30,7 +30,7 @@ namespace Uno.Extras
 
             if (toast.AppLogoOverride != null)
             {
-                var stream = await Hacks.GetImageStreamAsync(toast.AppLogoOverride).ConfigureAwait(false);
+                var stream = await toast.AppLogoOverride.GetStreamAsync().ConfigureAwait(false);
                 path = Path.GetTempFileName();
                 var fileStream = File.OpenWrite(path);
                 stream.CopyTo(fileStream);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,32 +92,26 @@ $@"
             return false;
         }
 
-        private static async Task<string> SetIconIfOveriddenAsync(BitmapImage image, bool comma = false)
+        private static async Task<string> SetIconIfOveriddenAsync(LogoSource image, bool comma = false)
         {
             if (image == null)
             {
                 return string.Empty;
             }
 
-            if (image.UriSource != null)
+            string data = null;
+
+            var uri = image.GetSourceUri();
+            if ((uri == null) || (new string[] { "ms-appx", "ms-appdata" }.Contains(uri.Scheme)))
             {
-                return $"icon: '{WebAssemblyRuntime.EscapeJs(image.UriSource.AbsoluteUri)}'";
+                data = await image.GetDataUrlAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                data = uri.ToString();
             }
 
-            var tokenSource = new CancellationTokenSource();
-            dynamic task = null;
-            
-            // Try to call this function: https://github.com/unoplatform/uno/blob/master/src/Uno.UI/UI/Xaml/Media/Imaging/BitmapImage.wasm.cs#L25
-            image.Invoke<BitmapImage, bool>("TryOpenSourceAsync", new object[] { tokenSource.Token, null, null, task });
-            
-            tokenSource.Dispose();
-
-            // internal partial struct ImageData: https://github.com/unoplatform/uno/blob/src/Uno.UI/UI/Xaml/Media/ImageData.netstd.cs#L10
-            dynamic imageData = await task;
-            
-            var data = Convert.ToBase64String(imageData.Value);
-
-            return $"icon: '{WebAssemblyRuntime.EscapeJs($"data:;base64,{data}")}'" + (comma ? "," : string.Empty);
+            return $"icon: '{data}'" + (comma ? "," : string.Empty);
         }
 
         /// <summary>

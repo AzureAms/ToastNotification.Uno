@@ -24,7 +24,7 @@ namespace Uno.Extras
             Icon icon;
             if (toast.AppLogoOverride != null)
             {
-                var imageStream = await Hacks.GetImageStreamAsync(toast.AppLogoOverride).ConfigureAwait(false);
+                var imageStream = await toast.AppLogoOverride.GetStreamAsync().ConfigureAwait(false);
                 var bitmap = (Bitmap)Image.FromStream(imageStream);
                 icon = Icon.FromHandle(bitmap.GetHicon());
             }
