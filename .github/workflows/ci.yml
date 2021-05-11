@@ -14,6 +14,7 @@ on:
     - ToastNotification.Wpf/**
     - ToastNotificationDemo/**
     - .github/workflows/ci.yml
+    - build/**
   pull_request:
     branches:
     - master
@@ -23,6 +24,7 @@ on:
     - ToastNotification.Wpf/**
     - ToastNotificationDemo/**
     - .github/workflows/ci.yml
+    - build/**
 
 jobs:
   build:
@@ -36,11 +38,19 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Update run id
+      if: github.ref == 'refs/heads/master'
+      run: |
+        cd build
+        Import-Module .\UpdateRunId.psm1
+        $id = UpdateRunId -AccessToken ${{secrets.ACCESS_TOKEN}}
+        echo "RUN_ID=$id" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+
     - name: Get Build Version
       run: |
         Import-Module .\build\GetBuildVersion.psm1
         Write-Host $Env:GITHUB_REF
-        $version = GetBuildVersion -VersionString $Env:GITHUB_REF -BuildNumber ${{ github.run_number }} -BuildId ${{ github.run_id }}
+        $version = GetBuildVersion -VersionString $Env:GITHUB_REF -BuildNumber $env:RUN_ID -BuildId ${{ github.run_id }}
         echo "BUILD_VERSION=$version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       shell: pwsh
 
