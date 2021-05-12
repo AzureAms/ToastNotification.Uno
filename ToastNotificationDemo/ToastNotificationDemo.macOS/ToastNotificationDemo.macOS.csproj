@@ -101,6 +101,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </BundleResource>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ToastNotification\ToastNotification.csproj">
+      <Project>{119B1B5C-EC7E-4F06-8D3C-DECDCA0BC4F9}</Project>
+      <Name>ToastNotification</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
   <Target Name="VS16Mac_RemoveSystemMemory" BeforeTargets="ResolveAssemblyReferences">
     <!--
