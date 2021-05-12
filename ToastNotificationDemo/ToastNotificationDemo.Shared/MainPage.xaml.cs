@@ -5,7 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Uno.Extras;
+#if __WASM__
 using Uno.Foundation;
+#endif
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage.Streams;
