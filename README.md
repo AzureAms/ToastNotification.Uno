@@ -1,6 +1,6 @@
 # Uno.Extras.ToastNotification
 Basic ToastNotification for the Uno Platform  
-![BuildStatus](https://github.com/trungnt2910/ToastNotification.Uno/actions/workflows/ci.yml/badge.svg)  
+![BuildStatus](https://github.com/AzureAms/ToastNotification.Uno/actions/workflows/ci.yml/badge.svg)  
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/47592730202a49079eb0875f6df46a95)](https://www.codacy.com/gh/AzureAms/ToastNotification.Uno/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AzureAms/ToastNotification.Uno&amp;utm_campaign=Badge_Grade)
 | Package | Version |
 | ---- | ---- |
