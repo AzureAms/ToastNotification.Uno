@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">iPhoneSimulator</Platform>
-    <ProjectGuid>3937a9b0-3093-4d72-8357-4283e20b24e1</ProjectGuid>
+    <ProjectGuid>{3937A9B0-3093-4D72-8357-4283E20B24E1}</ProjectGuid>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <RootNamespace>ToastNotificationDemo</RootNamespace>
@@ -149,10 +149,12 @@
       <Visible>false</Visible>
     </ImageAsset>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Media" Visible="false" />
-    <Folder Include="Media\AppIcons" Visible="false" />
-    <Folder Include="Media\LaunchImages" Visible="false" />
+    <ProjectReference Include="..\..\ToastNotification\ToastNotification.csproj">
+      <Project>{c141119a-4ac2-4828-a979-5fadce738550}</Project>
+      <Name>ToastNotification</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\ToastNotificationDemo.Shared\ToastNotificationDemo.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
