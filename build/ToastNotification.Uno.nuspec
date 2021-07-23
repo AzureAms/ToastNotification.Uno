@@ -18,16 +18,16 @@ This package contains the cross platform elements of ToastNotification. For some
     <repository type="git" url="https://github.com/AzureAms/ToastNotification.Uno" />
     <dependencies>
       <group targetFramework="MonoAndroid10.0">
-        <dependency id="Uno.UI" version="3.7.3" exclude="Build,Analyzers" />
+        <dependency id="Uno.UI" version="3.8.13" exclude="Build,Analyzers" />
       </group>
       <group targetFramework="Xamarin.iOS1.0">
-        <dependency id="Uno.UI" version="3.7.3" exclude="Build,Analyzers" />
+        <dependency id="Uno.UI" version="3.8.13" exclude="Build,Analyzers" />
       </group>
       <group targetFramework="Xamarin.Mac2.0">
-        <dependency id="Uno.UI" version="3.7.3" exclude="Build,Analyzers" />
+        <dependency id="Uno.UI" version="3.8.13" exclude="Build,Analyzers" />
       </group>
       <group targetFramework=".NETStandard2.0">
-        <dependency id="Uno.UI" version="3.7.3" exclude="Build,Analyzers" />
+        <dependency id="Uno.UI" version="3.8.13" exclude="Build,Analyzers" />
         <dependency id="NETStandard.Library" version="2.0.3" />
       </group>
       <group targetFramework="uap10.0.16299">
