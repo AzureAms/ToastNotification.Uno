@@ -14,7 +14,7 @@
 	<RootNamespace>Uno.Extras</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.16299' " Include="Uno.UI" Version="3.7.3"/>
+    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.16299' " Include="Uno.UI" Version="3.8.13"/>
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">
      <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.1" />

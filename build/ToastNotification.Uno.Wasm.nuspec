@@ -21,7 +21,7 @@ This package contains extension functions needed for WebAssembly projects to han
         <dependency id="ToastNotification.Uno" version="BUILD_VERSION" />
         <dependency id="NETStandard.Library" version="2.0.3" />
         <dependency id="Microsoft.CSharp" version="4.7.0" />
-        <dependency id="Uno.Foundation.Runtime.WebAssembly" version="3.7.3" />
+        <dependency id="Uno.Foundation.Runtime.WebAssembly" version="3.8.13" />
       </group>
     </dependencies>
   </metadata>
