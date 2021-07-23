@@ -28,7 +28,7 @@ namespace ToastNotificationDemo
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        const string sample = "https://static.wikia.nocookie.net/os-tan/images/8/8a/764227.png";
+        const string sample = "https://raw.githubusercontent.com/AzureAms/ToastNotification.Uno/master/ToastNotificationDemo/ToastNotificationDemo.Shared/Assets/sample.png";
 
         public MainPage()
         {
