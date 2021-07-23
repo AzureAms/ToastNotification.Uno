@@ -31,7 +31,7 @@ This package contains the cross platform elements of ToastNotification. For some
         <dependency id="NETStandard.Library" version="2.0.3" />
       </group>
       <group targetFramework="uap10.0.16299">
-        <dependency id="Microsoft.Toolkit.Uwp.Notifications" version="7.0.1" />
+        <dependency id="Microsoft.Toolkit.Uwp.Notifications" version="7.0.2" />
       </group>
     </dependencies>
   </metadata>
