@@ -25,6 +25,19 @@ namespace Uno.Extras
         /// Interval between popup and hiding of toast.
         /// </summary>
         public ToastDuration ToastDuration { get; set; } = ToastDuration.Short;
+        /// <summary>
+        /// Toast Actions, that can be activated through buttons on the Notification
+        /// </summary>
+        public IEnumerable<ToastAction> ToastActions { get; set; }
+        /// <summary>
+        /// Raised when this ToastNotification is pressed.
+        /// </summary>
+        public event EventHandler Pressed;
         #endregion
+        
+        internal void RaisePressed(EventArgs args)
+        {
+            Pressed?.Invoke(this, args);
+        }
     }
 }
