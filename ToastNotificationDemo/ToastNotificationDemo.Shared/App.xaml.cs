@@ -196,7 +196,6 @@ namespace ToastNotificationDemo
 
                 // TODO: Show the corresponding content
 
-                System.Diagnostics.Debug.WriteLine(toastActivationArgs.Argument);
                 var shouldPlay = args.Contains("ShouldPlay") ? Convert.ToBoolean(int.Parse(args["ShouldPlay"])) : false;
 
                 var contentDialog = new ContentDialog();

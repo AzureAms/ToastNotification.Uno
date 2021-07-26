@@ -138,7 +138,6 @@ namespace Notification.FrameworkDependent
                 // so we must check the whole class tree.
                 do
                 {
-                    Debug.WriteLine(t.Name);
                     if (t.FullName == "System.Windows.Application")
                     {
                         return true;

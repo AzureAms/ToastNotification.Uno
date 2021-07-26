@@ -51,14 +51,7 @@ namespace Notification.FrameworkDependent
 
             public static implicit operator Rect(RECT r)
             {
-                Debug.WriteLine(r.left);
-                Debug.WriteLine(r.top);
-                Debug.WriteLine(r.right);
-                Debug.WriteLine(r.bottom);
-
                 var factor = GetScaleFactor();
-
-                Debug.WriteLine(factor);
 
                 return new Rect
                 {

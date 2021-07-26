@@ -505,9 +505,6 @@ namespace Notification.FrameworkDependent
             _popup.HorizontalOffset = rect.Right + _control.DesiredSize.Width;
             _popup.VerticalOffset = rect.Bottom - _control.DesiredSize.Height - 10;
 
-            Debug.WriteLine(_popup.HorizontalOffset);
-            Debug.WriteLine(_popup.VerticalOffset);
-
             _popup.IsOpen = true;
 
             _backgroundRect.Opacity = 0.9;
