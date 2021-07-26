@@ -45,18 +45,6 @@ namespace Notification.Natives
             }
         }
 
-        private static void CleanEvent(EventHandler handler)
-        {
-            if (handler == null)
-            {
-                return;
-            }
-            foreach (var subscriber in handler.GetInvocationList())
-            {
-                handler -= (EventHandler)subscriber;
-            }
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -64,9 +52,9 @@ namespace Notification.Natives
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    CleanEvent(BalloonShow);
-                    CleanEvent(BalloonHide);
-                    CleanEvent(BallonClicked);
+                    BalloonShow.CleanEvent();
+                    BalloonHide.CleanEvent();
+                    BallonClicked.CleanEvent();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

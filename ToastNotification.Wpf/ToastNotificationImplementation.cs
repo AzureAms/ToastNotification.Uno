@@ -1,12 +1,17 @@
 ﻿using Microsoft.Win32;
+using Notification.FrameworkDependent;
 using Notification.Natives;
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Activation;
+using Windows.System;
+using Windows.UI.Xaml;
 
 namespace Uno.Extras
 {
@@ -15,6 +20,7 @@ namespace Uno.Extras
         private static readonly object dummy = new object();
         private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
         private static Guid id = id = Guid.NewGuid();
+        private static readonly Task<Assembly> DynamicAssemblyPromise;
 
         private static uint _callbackMessage = (uint)WindowMessage.App + 1;
         /// <summary>
@@ -33,11 +39,105 @@ namespace Uno.Extras
             }
         }
 
+        static ToastNotificationImplementation()
+        {
+            // Compiles the Assembly on a different Thread.
+            DynamicAssemblyPromise = Task.Run(Compiler.Compile);
+        }
+
+        /// <summary>
+        /// Shows the toast notification using either Win32 APIs
+        /// or a managed Popup, when neccessary
+        /// </summary>
+        /// <param name="toast">ToatsNotification as created in the native library.</param>
+        /// <returns></returns>
+        public static async Task Show(this ToastNotification toast)
+        {
+            await semaphore.WaitAsync();
+
+            if (toast.ToastButtons == null)
+            {
+                await ShowLegacy(toast);
+            }
+            else
+            {
+                await ShowManaged(toast);
+            }
+
+            semaphore.Release();
+        }
+
+
+        /// <summary>
+        /// Shows the toast notification using managed Popups.
+        /// </summary>
+        /// <param name="toast">ToatsNotification as created in the native library.</param>
+        private static async Task ShowManaged(this ToastNotification toast)
+        {
+            var asm = await DynamicAssemblyPromise;
+
+            var loaderType = asm.GetTypes().FirstOrDefault(type => type.Name == "ToastNotificationLoader");
+            // Python ease without Python's danger!
+            dynamic loader = Activator.CreateInstance(loaderType);
+
+            var tcs = new TaskCompletionSource<object>();
+
+            loader.Title = toast.Title;
+            loader.Description = toast.Message;
+
+            var actions = toast.ToastButtons.ToArray();
+
+            if (actions.Length >= 1)
+            {
+                loader.PrimaryButtonText = actions[0].Content;
+                loader.PrimaryButtonClick += (EventHandler)actions[0].HandleButtonClick;
+            }
+
+            if (actions.Length >= 2)
+            {
+                loader.SecondaryButtonText = actions[1].Content;
+                loader.SecondaryButtonClick += (EventHandler)actions[1].HandleButtonClick;
+            }
+
+            if (toast.Timestamp != null)
+            {
+                loader.Time = toast.Timestamp.Value.ToString("h:mm tt");
+            }
+
+            if (toast.AppLogoOverride != null)
+            {
+                // We also want to stay on the same thread here.
+                var imageStream = await toast.AppLogoOverride.GetStreamAsync().ConfigureAwait(true);
+                loader.SetImageSource(imageStream);
+            }
+
+            loader.NotificationClick += (EventHandler)toast.HandleToastClick;
+
+            loader.CloseRequested += (EventHandler)HandleCloseRequest;
+
+            void HandleCloseRequest(object sender, EventArgs args)
+            {
+                loader.HideAsync().ContinueWith((Action<Task>)(task =>
+                {
+                    tcs.TrySetResult(null);
+                }));
+            }
+
+            await loader.ShowAsync().ConfigureAwait(true);
+            await Task.Delay(toast.ToastDuration == ToastDuration.Short ? 7000 : 25000);
+            HandleCloseRequest(null, null);
+
+            await tcs.Task.ConfigureAwait(false);
+
+            loader.CleanEvents();
+
+        }
+
         /// <summary>
         /// Shows the toast notification using native Win32 APIs.
         /// </summary>
         /// <param name="toast">ToatsNotification as created in the native library.</param>
-        public static async Task Show(this ToastNotification toast)
+        private static async Task ShowLegacy(this ToastNotification toast)
         {
             Icon icon;
             if (toast.AppLogoOverride != null)
@@ -53,8 +153,6 @@ namespace Uno.Extras
             }
 
             var tcs = new TaskCompletionSource<object>();
-
-            await semaphore.WaitAsync();
 
             var notifyManager = new NotificationManagerWindow(CallbackMessage);
 
@@ -89,7 +187,7 @@ namespace Uno.Extras
             {
                 notifyData.RemoveIcon();
                 tcs.SetResult(null);
-                toast.RaisePressed(EventArgs.Empty);
+                _ = ActivateApp(toast.Arguments);
             };
 
             Shell.NotifyIcon(NotificationIconMessage.Modify, notifyData);
@@ -98,9 +196,14 @@ namespace Uno.Extras
 
             // The Window must be disposed on the same Thread.
             notifyManager.Dispose();
-
-            semaphore.Release();
         }
+
+        /// <summary>
+        /// Gets the button limit for this ToastNotification
+        /// </summary>
+        /// <param name="toast">The ToastNotification object</param>
+        /// <returns>2</returns>
+        public static int GetButtonLimit(this ToastNotification toast) => 2;
 
         private static bool AddIcon(this NotificationIconData notifyData)
         {
@@ -129,6 +232,48 @@ namespace Uno.Extras
         {
             Icon icon = Icon.ExtractAssociatedIcon(Assembly.GetEntryAssembly().Location);
             return icon;
+        }
+
+        private static async Task ActivateApp(string argument)
+        {
+            var asm = await DynamicAssemblyPromise;
+            var type = asm.GetTypes().FirstOrDefault(t => t.Name == "WpfHelpers");
+
+            type.GetMethod("ActivateApp").Invoke(null, null);
+
+            var app = Application.Current;
+            var args = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
+            app.Invoke("OnActivated", new object[] { args });
+        }
+
+        private static void ActivateBackground(string argument)
+        {
+            throw new NotImplementedException("Uno Platform does not support background tasks");
+        }
+
+        private static async void HandleToastClick(this ToastNotification toast, object sender, EventArgs args)
+        {
+            await ActivateApp(toast.Arguments).ConfigureAwait(false);
+        }
+
+        private static async void HandleButtonClick(this ToastButton button, object sender, EventArgs args)
+        {
+            if (button.ShouldDissmiss)
+            {
+                return;
+            }
+            switch (button.ActivationType)
+            {
+                case ToastActivationType.Background:
+                    ActivateBackground(button.Arguments);
+                break;
+                case ToastActivationType.Foreground:
+                    await ActivateApp(button.Arguments).ConfigureAwait(false);
+                break;
+                case ToastActivationType.Protocol:
+                    _ = Launcher.LaunchUriAsync(button.Protocol);
+                break;
+            }
         }
     }
 }

@@ -36,6 +36,17 @@ namespace Uno.Extras
             return typeof(TObject).GetMethod(name, flags);
         }
 
+        public static TObject Construct<TObject>(params object[] args)
+        {
+            var constructor = typeof(TObject).GetConstructor(
+                flags ^ BindingFlags.Static,
+                null,
+                args.Select(arg => arg.GetType()).ToArray(),
+                null);
+
+            return (TObject)constructor.Invoke(args);
+        }
+
         public static TValue GetValue<TObject, TValue>(this TObject obj, string name)
         {
             var fieldInfo = typeof(TObject).GetField(name, flags);
