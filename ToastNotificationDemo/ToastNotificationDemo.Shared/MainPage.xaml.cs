@@ -83,6 +83,31 @@ namespace ToastNotificationDemo
             logoSource.Dispose();
         }
 
+        private async void ToasterAction_Click(object sender, RoutedEventArgs args)
+        {
+#if __ANDROID__
+            var logoSource = new LogoSource(new Uri("ms-appx:///sample.png"));
+#else
+            var logoSource = new LogoSource(new Uri("ms-appx:///Assets/sample.png"));
+#endif
+            logoSource.Dispose();
+
+            await new ToastNotification()
+                .AddAppLogoOverride(logoSource)
+                .AddText("Toaster with buttons")
+                .AddText("Hello world!")
+                .AddText("Wanna play with me?")
+                .AddButton(new ToastButton()
+                    .SetContent("Let's go!")
+                    .AddArgument("ShouldPlay", true)
+                    )
+                .AddButton(new ToastButton()
+                    .SetContent("Another time")
+                    .SetDismissActivation()
+                    )
+                .Show();
+        }
+
         private static byte[] ReadToEnd(Stream stream)
         {
             var bytes = new List<byte>(stream.CanSeek ? (int)stream.Length : 0);

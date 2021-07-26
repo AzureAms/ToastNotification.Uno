@@ -40,6 +40,24 @@ namespace Uno.Extras
 
             builder.SetToastDuration(ToastDuration == ToastDuration.Short ? UwpNot.ToastDuration.Short : UwpNot.ToastDuration.Long);
 
+            if (Timestamp != null)
+            {
+                builder.AddCustomTimeStamp(Timestamp.Value);
+            }
+
+            if (ToastButtons != null)
+            {
+                foreach (var button in ToastButtons)
+                {
+                    builder.AddButton(Convert(button));
+                }
+            }
+
+            foreach (var kvp in _genericArguments)
+            {
+                builder.AddArgument(kvp.Key, kvp.Value);
+            }
+
             _tcs = new TaskCompletionSource<object>();
 
             builder.Show(t =>
@@ -54,6 +72,39 @@ namespace Uno.Extras
             });
 
             await _tcs.Task;
+        }
+
+        public static UwpNot.ToastButton Convert(ToastButton button)
+        {
+            var uwpButton = new UwpNot.ToastButton(button.Content, button.Arguments)
+            {
+                ActivationType = Convert(button.ActivationType),
+                HintActionId = button.HintActionId,
+                ImageUri = button.ImageUri,
+                TextBoxId = button.TextBoxId
+            };
+
+            if (button.Protocol != null)
+            {
+                uwpButton.SetProtocolActivation(button.Protocol);
+            }
+
+            if (button.ShouldDissmiss)
+            {
+                uwpButton.SetDismissActivation();
+            }
+
+            if (button.ActivationType == ToastActivationType.Background)
+            {
+                uwpButton.SetBackgroundActivation();
+            }
+
+            return uwpButton;    
+        }
+
+        public static UwpNot.ToastActivationType Convert(ToastActivationType type)
+        {
+            return (UwpNot.ToastActivationType)type;
         }
     }
 }
