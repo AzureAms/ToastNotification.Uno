@@ -74,7 +74,7 @@ namespace Uno.Extras
             await _tcs.Task;
         }
 
-        public static UwpNot.ToastButton Convert(ToastButton button)
+        private static UwpNot.ToastButton Convert(ToastButton button)
         {
             var uwpButton = new UwpNot.ToastButton(button.Content, button.Arguments)
             {
@@ -102,10 +102,13 @@ namespace Uno.Extras
             return uwpButton;    
         }
 
-        public static UwpNot.ToastActivationType Convert(ToastActivationType type)
+        private static UwpNot.ToastActivationType Convert(ToastActivationType type)
         {
             return (UwpNot.ToastActivationType)type;
         }
+
+        // https://docs.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts?tabs=builder-syntax#buttons
+        public int GetButtonLimit() => 5;
     }
 }
 #endif
