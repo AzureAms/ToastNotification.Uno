@@ -13,6 +13,12 @@
     <UpToDateCheckInput Include="..\ToastNotificationDemo.Shared\**\*.xaml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\**">
+      <CopyToOutputDirectory>true</CopyToOutputDirectory>
+      <CopyToPublishDirectory>true</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\ToastNotification.Wpf\ToastNotification.Wpf.csproj" />
     <ProjectReference Include="..\..\ToastNotification\ToastNotification.csproj" />
   </ItemGroup>
