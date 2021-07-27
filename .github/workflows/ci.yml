@@ -8,12 +8,13 @@ on:
   push:
     branches:
     - master
+    - dev/**
     paths:
     - ToastNotification/**
     - ToastNotification.Wasm/**
     - ToastNotification.Wpf/**
     - ToastNotificationDemo/**
-    - ToastNotification.LogoSourceTest*/**
+    - ToastNotificationTests/**
     - .github/workflows/ci.yml
     - build/**
   pull_request:
@@ -77,7 +78,7 @@ jobs:
 
     - name: Run UWP tests
       run: |
-        cd ToastNotification.LogoSourceTests.UWP
+        cd ToastNotificationTests\ToastNotification.LogoSourceTests.UWP
         msbuild /p:Platform=x64 /p:Configuration=Debug
         vstest.console.exe /Platform:x64 bin\x64\Debug\ToastNotification.LogoSourceTests.UWP.build.appxrecipe 
 
