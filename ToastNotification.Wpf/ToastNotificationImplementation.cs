@@ -83,7 +83,7 @@ namespace Uno.Extras
             var tcs = new TaskCompletionSource<object>();
 
             loader.Title = toast.Title;
-            loader.Description = toast.Message;
+            loader.Description = toast.Message.Trim();
 
             var actions = toast.ToastButtons.ToArray();
 

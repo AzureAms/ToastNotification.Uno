@@ -101,7 +101,6 @@
                 <StackPanel Name="ContentTextPanel" Grid.Row="1" Grid.Column="2">
                     <TextBlock Text="{Binding Path=Title, Mode=OneWay}" Foreground="White" FontSize="16" FontWeight="DemiBold"/>
                     <TextBlock Text="{Binding Path=Description, Mode=OneWay}" Foreground="#AFB1B2" FontSize="16"/>
-                    <TextBlock Text="{Binding Path=Time, Mode=OneWay}" Foreground="#afb1b2" FontSize="12" Margin="0,4,0,0"/>
                 </StackPanel>
             </Grid>
             <Grid Grid.Row="2">
