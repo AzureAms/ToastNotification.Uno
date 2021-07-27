@@ -162,7 +162,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ToastNotification\ToastNotification.csproj">
+    <ProjectReference Include="..\..\ToastNotification\ToastNotification.csproj">
       <Project>{c141119a-4ac2-4828-a979-5fadce738550}</Project>
       <Name>ToastNotification</Name>
     </ProjectReference>

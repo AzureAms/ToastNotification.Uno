@@ -26,14 +26,20 @@ namespace Notification.FrameworkDependent
         /// <returns>The Assembly that contains the dynamic control</returns>
         public static Assembly Compile()
         {
-            bool isDebug = Debugger.IsAttached;
+            return CompileInternal(Assembly.GetEntryAssembly());
+        }
+
+        // Used for Unit tests.
+        internal static Assembly CompileInternal(Assembly entry, bool? shouldDebug = null)
+        {
+            bool isDebug = shouldDebug ?? Debugger.IsAttached;
 
             var syntaxTrees = EnumerateResourceNames("cs").Select(name => CSharpSyntaxTree.ParseText(ReadResource(name)));
 
             var compilation = CSharpCompilation.Create(
                 "ToastNotification.Runtime.Wpf",
                 syntaxTrees,
-                GetReferences().ToArray(),
+                GetReferences(entry).ToArray(),
                 new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimizationLevel: isDebug ? OptimizationLevel.Debug : OptimizationLevel.Release)
@@ -126,11 +132,10 @@ namespace Notification.FrameworkDependent
             return ms;
         }
 
-        private static IEnumerable<MetadataReference> GetReferences()
+        private static IEnumerable<MetadataReference> GetReferences(Assembly entry)
         {
             // Tested on .NET 4.8, .NET Core 3.1, and the latest .NET 5.0
 
-            var entry = Assembly.GetEntryAssembly();
             var applicationType = entry.GetTypes().FirstOrDefault(t =>
             {
                 // Clients might be using libraries that extends

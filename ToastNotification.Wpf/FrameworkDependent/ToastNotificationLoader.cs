@@ -481,14 +481,7 @@ namespace Notification.FrameworkDependent
                 Grid.SetColumnSpan(contentTextPanel, 1);
             }
 
-            var window = Application.Current.MainWindow;
-            var wih = new WindowInteropHelper(window);
-            var hWnd = wih.Handle;
-
-            AppIconImageSource = Imaging.CreateBitmapSourceFromHIcon(
-                IconInterop.GetSmallWindowIcon(hWnd),
-                Int32Rect.Empty,
-                BitmapSizeOptions.FromEmptyOptions());
+            AppIconImageSource = IconInterop.GetSmallWindowIcon();
 
             if (AppName == null)
             {

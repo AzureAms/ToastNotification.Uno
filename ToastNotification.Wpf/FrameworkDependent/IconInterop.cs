@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace Notification.FrameworkDependent
 {
@@ -59,6 +65,31 @@ namespace Notification.FrameworkDependent
             catch (Exception)
             {
                 return IntPtr.Zero;
+            }
+        }
+
+        public static ImageSource GetSmallWindowIcon()
+        {
+            try
+            {
+                var window = Application.Current.MainWindow;
+                var wih = new WindowInteropHelper(window);
+                var hWnd = wih.Handle;
+
+                return Imaging.CreateBitmapSourceFromHIcon(
+                    GetSmallWindowIcon(hWnd),
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromEmptyOptions());
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Failed to get Application Icon: {e}");
+                Debug.WriteLine("Using default icon.");
+
+                return Imaging.CreateBitmapSourceFromHIcon(
+                    LoadIcon(IntPtr.Zero, (IntPtr)0x7F00),
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromEmptyOptions());
             }
         }
     }
