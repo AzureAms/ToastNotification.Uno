@@ -60,9 +60,10 @@ jobs:
       run: nuget restore $SOLUTION
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.x
+      run: |
+        Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile 'dotnet-install.ps1'
+        ./dotnet-install.ps1 -Channel Current
+      shell: pwsh
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
