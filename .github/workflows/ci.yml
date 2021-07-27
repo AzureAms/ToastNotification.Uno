@@ -14,6 +14,7 @@ on:
     - ToastNotification.Wasm/**
     - ToastNotification.Wpf/**
     - ToastNotificationDemo/**
+    - ToastNotification.LogoSourceTest*/**
     - ToastNotificationTests/**
     - .github/workflows/ci.yml
     - build/**
@@ -26,6 +27,7 @@ on:
     - ToastNotification.Wpf/**
     - ToastNotificationDemo/**
     - ToastNotification.LogoSourceTest*/**
+    - ToastNotificationTests/**
     - .github/workflows/ci.yml
     - build/**
 
@@ -79,7 +81,7 @@ jobs:
 
     - name: Run UWP tests
       run: |
-        cd ToastNotificationTests\ToastNotification.LogoSourceTests.UWP
+        cd ToastNotification.LogoSourceTests.UWP
         msbuild /p:Platform=x64 /p:Configuration=Debug
         vstest.console.exe /Platform:x64 bin\x64\Debug\ToastNotification.LogoSourceTests.UWP.build.appxrecipe 
 
