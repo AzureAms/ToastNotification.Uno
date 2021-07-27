@@ -6,11 +6,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Activation;
 using Windows.System;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 
 namespace Uno.Extras
@@ -20,7 +22,7 @@ namespace Uno.Extras
         private static readonly object dummy = new object();
         private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
         private static Guid id = id = Guid.NewGuid();
-        private static readonly Task<Assembly> DynamicAssemblyPromise;
+        private static readonly ConfiguredTaskAwaitable<Assembly> DynamicAssemblyPromise;
 
         private static uint _callbackMessage = (uint)WindowMessage.App + 1;
         /// <summary>
@@ -42,7 +44,7 @@ namespace Uno.Extras
         static ToastNotificationImplementation()
         {
             // Compiles the Assembly on a different Thread.
-            DynamicAssemblyPromise = Task.Run(Compiler.Compile);
+            DynamicAssemblyPromise = Task.Run(Compiler.Compile).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -76,44 +78,57 @@ namespace Uno.Extras
         {
             var asm = await DynamicAssemblyPromise;
 
-            var loaderType = asm.GetTypes().FirstOrDefault(type => type.Name == "ToastNotificationLoader");
-            // Python ease without Python's danger!
-            dynamic loader = Activator.CreateInstance(loaderType);
-
             var tcs = new TaskCompletionSource<object>();
 
-            loader.Title = toast.Title;
-            loader.Description = toast.Message.Trim();
+            var loaderType = asm.GetTypes().FirstOrDefault(type => type.Name == "ToastNotificationLoader");
 
-            var actions = toast.ToastButtons.ToArray();
+            dynamic loader = null;
 
-            if (actions.Length >= 1)
+            await RunOnMainThreadAsync(async () =>
             {
-                loader.PrimaryButtonText = actions[0].Content;
-                loader.PrimaryButtonClick += (EventHandler)actions[0].HandleButtonClick;
-            }
+                // Python ease without Python's danger!
+                loader = Activator.CreateInstance(loaderType);
 
-            if (actions.Length >= 2)
-            {
-                loader.SecondaryButtonText = actions[1].Content;
-                loader.SecondaryButtonClick += (EventHandler)actions[1].HandleButtonClick;
-            }
+                loader.Title = toast.Title;
+                loader.Description = toast.Message.Trim();
 
-            if (toast.Timestamp != null)
-            {
-                loader.Time = toast.Timestamp.Value.ToString("h:mm tt");
-            }
+                var actions = toast.ToastButtons.ToArray();
 
-            if (toast.AppLogoOverride != null)
-            {
-                // We also want to stay on the same thread here.
-                var imageStream = await toast.AppLogoOverride.GetStreamAsync().ConfigureAwait(true);
-                loader.SetImageSource(imageStream);
-            }
+                if (actions.Length >= 1)
+                {
+                    loader.PrimaryButtonText = actions[0].Content;
+                    loader.PrimaryButtonClick += (EventHandler)actions[0].HandleButtonClick;
+                }
 
-            loader.NotificationClick += (EventHandler)toast.HandleToastClick;
+                if (actions.Length >= 2)
+                {
+                    loader.SecondaryButtonText = actions[1].Content;
+                    loader.SecondaryButtonClick += (EventHandler)actions[1].HandleButtonClick;
+                }
 
-            loader.CloseRequested += (EventHandler)HandleCloseRequest;
+                if (toast.Timestamp != null)
+                {
+                    loader.Time = toast.Timestamp.Value.ToString("h:mm tt");
+                }
+
+                if (toast.AppLogoOverride != null)
+                {
+                    // We also want to stay on the same thread here.
+                    var imageStream = await toast.AppLogoOverride.GetStreamAsync().ConfigureAwait(true);
+                    loader.SetImageSource(imageStream);
+                }
+
+                loader.NotificationClick += (EventHandler)toast.HandleToastClick;
+
+                loader.CloseRequested += (EventHandler)HandleCloseRequest;
+
+                Debug.WriteLine("Showing");
+
+                await loader.ShowAsync();
+                
+                await Task.Delay(toast.ToastDuration == ToastDuration.Short ? 7000 : 25000);
+                HandleCloseRequest(null, null);
+            });
 
             void HandleCloseRequest(object sender, EventArgs args)
             {
@@ -122,10 +137,6 @@ namespace Uno.Extras
                     tcs.TrySetResult(null);
                 }));
             }
-
-            await loader.ShowAsync().ConfigureAwait(true);
-            await Task.Delay(toast.ToastDuration == ToastDuration.Short ? 7000 : 25000);
-            HandleCloseRequest(null, null);
 
             await tcs.Task.ConfigureAwait(false);
 
@@ -142,8 +153,7 @@ namespace Uno.Extras
             Icon icon;
             if (toast.AppLogoOverride != null)
             {
-                // For some reasons, this must be done on the same Thread.
-                var imageStream = await toast.AppLogoOverride.GetStreamAsync().ConfigureAwait(true);
+                var imageStream = await toast.AppLogoOverride.GetStreamAsync().ConfigureAwait(false);
                 var bitmap = (Bitmap)Image.FromStream(imageStream);
                 icon = Icon.FromHandle(bitmap.GetHicon());
             }
@@ -154,48 +164,56 @@ namespace Uno.Extras
 
             var tcs = new TaskCompletionSource<object>();
 
-            var notifyManager = new NotificationManagerWindow(CallbackMessage);
-
-            var notifyData = new NotificationIconData();
-            notifyData.hWnd = notifyManager.Handle;
-            notifyData.cbSize = (uint)Marshal.SizeOf(notifyData);
-            notifyData.uCallbackMessage = CallbackMessage;
-            notifyData.DUMMYUNIONNAME_uTimeout_uVersion = 0x4;
-            notifyData.hIcon = GetProcessIcon().Handle;
-            notifyData.szTip = string.Empty;
-            notifyData.uFlags = NotificationIconFlags.Icon | NotificationIconFlags.Tip | NotificationIconFlags.Guid | NotificationIconFlags.Message;
-            notifyData.guidItem = id;
-
-            if (!notifyData.AddIcon())
+            await RunOnMainThreadAsync(async () =>
             {
-                throw new InvalidOperationException("Cannot add icon.");
-            }
+                var innerTcs = new TaskCompletionSource<object>();
+                var notifyManager = new NotificationManagerWindow(CallbackMessage);
 
-            notifyData.uFlags = NotificationIconFlags.Info | NotificationIconFlags.Icon | NotificationIconFlags.Guid;
-            notifyData.szInfoTitle = toast.Title;
-            notifyData.szInfo = toast.Message;
-            notifyData.dwInfoFlags = NotificationIconInfoFlags.User | NotificationIconInfoFlags.LargeIcon;
-            notifyData.hBalloonIcon = icon.Handle;
+                var notifyData = new NotificationIconData();
+                notifyData.hWnd = notifyManager.Handle;
+                notifyData.cbSize = (uint)Marshal.SizeOf(notifyData);
+                notifyData.uCallbackMessage = CallbackMessage;
+                notifyData.DUMMYUNIONNAME_uTimeout_uVersion = 0x4;
+                notifyData.hIcon = GetProcessIcon().Handle;
+                notifyData.szTip = string.Empty;
+                notifyData.uFlags = NotificationIconFlags.Icon | NotificationIconFlags.Tip | NotificationIconFlags.Guid | NotificationIconFlags.Message;
+                notifyData.guidItem = id;
 
-            notifyManager.BalloonHide += (s, a) =>
-            {
-                notifyData.RemoveIcon();
+                if (!notifyData.AddIcon())
+                {
+                    throw new InvalidOperationException("Cannot add icon.");
+                }
+
+                notifyData.uFlags = NotificationIconFlags.Info | NotificationIconFlags.Icon | NotificationIconFlags.Guid;
+                notifyData.szInfoTitle = toast.Title;
+                notifyData.szInfo = toast.Message;
+                notifyData.dwInfoFlags = NotificationIconInfoFlags.User | NotificationIconInfoFlags.LargeIcon;
+                notifyData.hBalloonIcon = icon.Handle;
+
+                notifyManager.BalloonHide += (s, a) =>
+                {
+                    notifyData.RemoveIcon();
+                    innerTcs.SetResult(null);
+                };
+
+                notifyManager.BallonClicked += (s, a) =>
+                {
+                    notifyData.RemoveIcon();
+                    innerTcs.SetResult(null);
+                    _ = ActivateApp(toast.Arguments);
+                };
+
+                Shell.NotifyIcon(NotificationIconMessage.Modify, notifyData);
+
+                await innerTcs.Task.ConfigureAwait(true);
+
+                // The Window must be disposed on the same Thread.
+                notifyManager.Dispose();
+
                 tcs.SetResult(null);
-            };
+            });
 
-            notifyManager.BallonClicked += (s, a) =>
-            {
-                notifyData.RemoveIcon();
-                tcs.SetResult(null);
-                _ = ActivateApp(toast.Arguments);
-            };
-
-            Shell.NotifyIcon(NotificationIconMessage.Modify, notifyData);
-
-            await tcs.Task.ConfigureAwait(true);
-
-            // The Window must be disposed on the same Thread.
-            notifyManager.Dispose();
+            await tcs.Task.ConfigureAwait(false);
         }
 
         /// <summary>
@@ -274,6 +292,14 @@ namespace Uno.Extras
                     _ = Launcher.LaunchUriAsync(button.Protocol);
                 break;
             }
+        }
+
+        private static async Task RunOnMainThreadAsync(Action a)
+        {
+            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                a();
+            });
         }
     }
 }
