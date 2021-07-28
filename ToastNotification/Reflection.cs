@@ -24,6 +24,18 @@ namespace Uno.Extras
             methodInfo.Invoke(obj, args);
         }
 
+        public static TResult InvokeStatic<TResult>(this Type type, string name, object[] args)
+        {
+            var methodInfo = type.GetMethod(name, flags ^ BindingFlags.Instance);
+            return (TResult)methodInfo.Invoke(null, args);
+        }
+
+        public static void InvokeStatic(this Type type, string name, object[] args)
+        {
+            var methodInfo = type.GetMethod(name, flags ^ BindingFlags.Instance);
+            methodInfo.Invoke(null, args);
+        }
+
         /// <summary>
         /// Wraps around the lengthy syntax of C# to get MethodInfo
         /// </summary>

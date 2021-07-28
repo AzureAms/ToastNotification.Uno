@@ -1,8 +1,14 @@
 ﻿using GLib;
+using Notification.Natives;
+using Notifications.DBus;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Text;
 using System.Threading;
+using Tmds.DBus;
+using Uno.UI.Runtime.Skia;
 using Windows.ApplicationModel.Activation;
 using Windows.System;
 using Task = System.Threading.Tasks.Task;
@@ -12,28 +18,28 @@ namespace Uno.Extras
 {
     public static class ToastNotificationImplementation
     {
-        private static Dictionary<Guid, ToastNotification> notifications = new Dictionary<Guid, ToastNotification>();
-        private static Dictionary<ToastNotification, Guid> ids = new Dictionary<ToastNotification, Guid>();
+        private static readonly Dictionary<uint, string> _defaultArguments = new Dictionary<uint, string>();
+        private static readonly SemaphoreSlim _dictionarySemaphore = new SemaphoreSlim(1);
 
-        private const string LaunchFromNotificationForeground = "LaunchFromNotificationForeground";
-        private const string LaunchFromNotificationBackground = "LaunchFromNotificationBackground";
-        private const string LaunchProtocolFromNotification = "LaunchProtocolFromNotification";
-        private const string DismissAction = "DismissNotification";
+        private static readonly INotifications _service =
+            Connection.Session.CreateProxy<INotifications>("org.freedesktop.Notifications", "/org/freedesktop/Notifications");
+
+        private static readonly Task _registerTask;
+
+        delegate long d_g_get_monotonic_time();
+        private static d_g_get_monotonic_time g_get_monotonic_time = GtkFuncLoader.LoadFunction<d_g_get_monotonic_time>("GLib", "g_get_monotonic_time");
 
         /// <summary>
-        /// Shows a native Gtk notification. For best results, you shows initialize a 
-        /// <seealso cref="GLib.Application"/>
-        /// with the correct application id. Also, gnome-shell requires a desktop file
-        /// whose base name matches the application id for the notification to show.
+        /// Shows a notification using DBus, according to the standard here:
+        /// https://developer.gnome.org/notification-spec/
         /// </summary>
-        /// <param name="toast">ToastNotification as created in the native library.</param>
+        /// <param name="toast">ToastNotification as created in the shared library.</param>
         /// <returns></returns>
         public static async Task Show(this ToastNotification toast)
         {
-            var notification = new Notification(toast.Title);
-            notification.Body = toast.Message;
+            await _registerTask;
 
-            string path = null;
+            string path = string.Empty;
 
             if (toast.AppLogoOverride != null)
             {
@@ -43,61 +49,44 @@ namespace Uno.Extras
                 stream.CopyTo(fileStream);
                 stream.Dispose();
                 fileStream.Dispose();
-
-                var fileInfo = FileFactory.NewForPath(path);
-                FileIcon icon = new FileIcon(fileInfo);
-
-                notification.Icon = icon;
-
-                icon.Dispose();
             }
 
-            Guid id;
+            var actions = new List<string>();
+            actions.Add("default");
+            actions.Add(string.Empty);
 
-            if (ids.ContainsKey(toast))
-            {
-                id = ids[toast];
-            }
-            else
-            {
-                id = Guid.NewGuid();
-                ids.Add(toast, id);
-                notifications.Add(id, toast);
-            }
-
-            notification.SetDefaultActionAndTargetValue("app." + LaunchFromNotificationForeground, new Variant(toast.Arguments));
-            
             if (toast.ToastButtons != null)
             {
                 foreach (var button in toast.ToastButtons)
                 {
-                    notification.AddButtonWithTargetValue(button.Content, button.GetAppropriateAction(),
-                        new Variant(button.ActivationType != ToastActivationType.Protocol ? button.Arguments : button.Protocol.ToString()));
+                    if (button.ShouldDissmiss)
+                    {
+                        actions.Add("dismiss,");
+                    }
+                    else if (button.Protocol != null)
+                    {
+                        actions.Add($"protocol,{button.Protocol}");
+                    }
+                    else if (button.ActivationType == ToastActivationType.Background)
+                    {
+                        actions.Add($"background,{button.Arguments}");
+                    }
+                    else
+                    {
+                        actions.Add($"foreground,{button.Arguments}");
+                    }
+                    actions.Add(button.Content);
                 }
             }
 
-            await InvokeAsync(() =>
-            {
-                if (Application.Default == null)
-                {
-                    var application = new Application(Windows.ApplicationModel.Package.Current.DisplayName + ".Skia.Gtk", ApplicationFlags.None);
-                    application.Register(null);
-                }
-                Application.Default.SendNotification(id.ToString(), notification);
-                notification.Dispose();
+            var appName = Assembly.GetEntryAssembly().GetName().Name;
+            var duration = toast.ToastDuration == ToastDuration.Short ? 7000 : 25000;
 
-                // Gtk notifications do not automatically close, so we can decide the time here.
-                var waitTime = toast.ToastDuration == ToastDuration.Short ? 7000 : 25000;
-                Thread.Sleep(waitTime);
-                Application.Default.WithdrawNotification(id.ToString());
-                
-                // Gnome uses this temporary file to display the icon. We must not delete this file
-                // before the notification withdraws.
-                if (path != null)
-                {
-                    File.Delete(path);
-                }
-            }).ConfigureAwait(false);
+            // This is to prevent id from being deleted before added to the dictionary.
+            await _dictionarySemaphore.WaitAsync();
+            var id = await _service.NotifyAsync(appName, 0, UrlEncode(path), toast.Title, toast.Message, actions.ToArray(), new Dictionary<string, object>(), duration);
+            _defaultArguments.Add(id, toast.Arguments);
+            _dictionarySemaphore.Release();
         }
 
         // On GTK, we don't know how many buttons notifications support.
@@ -105,43 +94,70 @@ namespace Uno.Extras
 
         static ToastNotificationImplementation()
         {
-            var foregroundAction = new SimpleAction(LaunchFromNotificationForeground, VariantType.String);
-            var backgroundAction = new SimpleAction(LaunchFromNotificationBackground, VariantType.String);
-            var protocolAction = new SimpleAction(LaunchProtocolFromNotification, VariantType.String);
-            var dismissAction = new SimpleAction(DismissAction, VariantType.Any);
-
-            foregroundAction.Activated += ForegroundAction_Activated;
-            backgroundAction.Activated += BackgroundAction_Activated;
-            protocolAction.Activated += ProtocolAction_Activated;
-
-            var app = Application.Default;
-
-            app.AddAction(foregroundAction);
-            app.AddAction(backgroundAction);
-            app.AddAction(protocolAction);
-            app.AddAction(dismissAction);
+            _registerTask = RegisterAsync();
         }
 
-        private static void ForegroundAction_Activated(object o, ActivatedArgs args)
+        private static async Task RegisterAsync()
         {
-            var arguments = (string)args.P0;
-            ActivateApp(arguments);
+            await _service.WatchActionInvokedAsync(HandleActivation);
+            await _service.WatchNotificationClosedAsync(HandleClose);
         }
 
-        private static void BackgroundAction_Activated(object o, ActivatedArgs args)
+        private static async void HandleActivation((uint id, string key) arg)
         {
-            var arguments = (string)args.P0;
-            ActivateBackground(arguments);
+            await _dictionarySemaphore.WaitAsync();
+            if (arg.key == "default")
+            {
+                if (_defaultArguments.TryGetValue(arg.id, out string data))
+                {
+                    ActivateApp(data);
+                }
+            }
+            else
+            {
+                var splitIndex = arg.key.IndexOf(",");
+                if (splitIndex == -1)
+                {
+                    goto bail;
+                }
+                var operation = arg.key.Substring(0, splitIndex);
+                var data = arg.key.Substring(splitIndex + 1);
+                switch (operation)
+                {
+                    case "dismiss":
+                    break;
+                    case "protocol":
+                        await Launcher.LaunchUriAsync(new Uri(data));
+                    break;
+                    case "background":
+                        ActivateBackground(data);
+                    break;
+                    case "foreground":
+                        ActivateApp(data);
+                    break;
+                }
+            }
+            // Signals are somehow frequently called twice.
+            // This is to ensure stuff are not invoked randomly.
+            _defaultArguments.Remove(arg.id);
+bail:       _dictionarySemaphore.Release();
         }
 
-        private static void ProtocolAction_Activated(object o, ActivatedArgs args)
+        private static async void HandleClose((uint id, uint reason) arg)
         {
-            var protocol = (string)args.P0;
-            _ = Launcher.LaunchUriAsync(new Uri(protocol));
+            await _dictionarySemaphore.WaitAsync();
+            _defaultArguments.Remove(arg.id);
+            _dictionarySemaphore.Release();
         }
 
         private static void ActivateApp(string argument)
         {
+            var window = GtkHost.Window;
+
+            // A valid timestamp is required, else the 
+            // window will not successfully activate.
+            window.PresentWithTime(TryGetTimestamp());
+
             var app = Windows.UI.Xaml.Application.Current;
             var args = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
             app.Invoke("OnActivated", new object[] { args });
@@ -150,25 +166,6 @@ namespace Uno.Extras
         private static void ActivateBackground(string argument)
         {
             throw new NotImplementedException("Uno Platform does not support background tasks");
-        }
-
-        private static string GetAppropriateAction(this ToastButton button)
-        {
-            if (button.ShouldDissmiss)
-            {
-                return DismissAction;
-            }
-            switch (button.ActivationType)
-            {
-                case ToastActivationType.Background:
-                    return LaunchFromNotificationBackground;
-                case ToastActivationType.Foreground:
-                    return LaunchFromNotificationForeground;
-                case ToastActivationType.Protocol:
-                    return LaunchProtocolFromNotification;
-                default:
-                    throw new ArgumentOutOfRangeException("ToastActivationType does not exist!");
-            }
         }
 
         private static Task InvokeAsync(Action a)
@@ -190,6 +187,45 @@ namespace Uno.Extras
                     }
                 }
             });
+        }
+
+        private static uint TryGetTimestamp()
+        {
+            if (g_get_monotonic_time != null)
+            {
+                return (uint)(g_get_monotonic_time() / 1000);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        // Stolen from the Uno Platform
+        private static string UrlEncode(string path)
+        {
+            var uri = new StringBuilder();
+            foreach (var ch in path)
+            {
+                if (('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ('0' <= ch && ch <= '9') ||
+                    "-._~".Contains(ch))
+                {
+                    uri.Append(ch);
+                }
+                else if (ch == Path.DirectorySeparatorChar || ch == Path.AltDirectorySeparatorChar)
+                {
+                    uri.Append('/');
+                }
+                else
+                {
+                    var bytes = Encoding.UTF8.GetBytes(new[] { ch });
+                    foreach (var b in bytes)
+                    {
+                        uri.Append($"%{b:X2}");
+                    }
+                }
+            }
+            return "file://" + uri;
         }
     }
 }
