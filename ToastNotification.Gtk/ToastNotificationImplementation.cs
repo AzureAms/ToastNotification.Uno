@@ -18,7 +18,7 @@ namespace Uno.Extras
 {
     public static class ToastNotificationImplementation
     {
-        private static readonly Dictionary<uint, string> _defaultArguments = new Dictionary<uint, string>();
+        private static readonly Dictionary<uint, string> _notificationIds = new Dictionary<uint, string>();
         private static readonly SemaphoreSlim _dictionarySemaphore = new SemaphoreSlim(1);
 
         private static readonly INotifications _service =
@@ -85,7 +85,7 @@ namespace Uno.Extras
             // This is to prevent id from being deleted before added to the dictionary.
             await _dictionarySemaphore.WaitAsync();
             var id = await _service.NotifyAsync(appName, 0, UrlEncode(path), toast.Title, toast.Message, actions.ToArray(), new Dictionary<string, object>(), duration);
-            _defaultArguments.Add(id, toast.Arguments);
+            _notificationIds.Add(id, toast.Arguments);
             _dictionarySemaphore.Release();
 
             // The file should be deleted, as the service seems to have
@@ -110,12 +110,13 @@ namespace Uno.Extras
         private static async void HandleActivation((uint id, string key) arg)
         {
             await _dictionarySemaphore.WaitAsync();
+            if (!_notificationIds.ContainsKey(arg.id))
+            {
+                goto bail;
+            }
             if (arg.key == "default")
             {
-                if (_defaultArguments.TryGetValue(arg.id, out string data))
-                {
-                    ActivateApp(data);
-                }
+                ActivateApp(_notificationIds[arg.id]);
             }
             else
             {
@@ -143,14 +144,14 @@ namespace Uno.Extras
             }
             // Signals are somehow frequently called twice.
             // This is to ensure stuff are not invoked randomly.
-            _defaultArguments.Remove(arg.id);
+            _notificationIds.Remove(arg.id);
 bail:       _dictionarySemaphore.Release();
         }
 
         private static async void HandleClose((uint id, uint reason) arg)
         {
             await _dictionarySemaphore.WaitAsync();
-            _defaultArguments.Remove(arg.id);
+            _notificationIds.Remove(arg.id);
             _dictionarySemaphore.Release();
         }
 
