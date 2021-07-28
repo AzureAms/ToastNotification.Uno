@@ -87,6 +87,10 @@ namespace Uno.Extras
             var id = await _service.NotifyAsync(appName, 0, UrlEncode(path), toast.Title, toast.Message, actions.ToArray(), new Dictionary<string, object>(), duration);
             _defaultArguments.Add(id, toast.Arguments);
             _dictionarySemaphore.Release();
+
+            // The file should be deleted, as the service seems to have
+            // kept a copy of the image.
+            File.Delete(path);
         }
 
         // On GTK, we don't know how many buttons notifications support.
