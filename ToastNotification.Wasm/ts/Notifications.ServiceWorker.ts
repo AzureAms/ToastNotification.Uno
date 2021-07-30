@@ -4,7 +4,10 @@ declare var _self: any;
 
 namespace Notifications.ServiceWorker {
     export class NotificationWorker {
-        private static _ports: Record<string, MessagePort> = { };
+        private static _resolves: Record<number, any> = { };
+        private static _num = 0;
+        // This should be adequate for most responsive modern browsers.
+        private static _timeout = 2048;
         public static Run() {
             if (self.document) {
                 return;
@@ -46,9 +49,7 @@ namespace Notifications.ServiceWorker {
                         var url = eventData.argument;
                         _self.clients.openWindow(url);
                         break;
-                    case "foreground":
-                        this._ports[guid].postMessage({ op: "notificationclick", payload: eventData.argument });
-
+                    case "foreground":                    
                         var mainPageUrl = (new URL("..", _self.registration.scope)).href;
 
                         // This looks to see if the current is already open and
@@ -82,7 +83,10 @@ namespace Notifications.ServiceWorker {
                                                     resolveChild(false);
                                                 }
                                                 else {
-                                                    client.focus().then(resolveChild(true));
+                                                    client.focus().then((_: any) => {
+                                                        this.PumpMessage(client, "notificationclick", eventData.argument);
+                                                        resolveChild(true);
+                                                    });
                                                 }
                                             });
                                         })
@@ -92,7 +96,9 @@ namespace Notifications.ServiceWorker {
                                         resolve();
                                     }
                                     else if (_self.clients.openWindow) {
-                                        _self.clients.openWindow(mainPageUrl).then(resolve());
+                                        _self.clients.openWindow(mainPageUrl).then((client: any) => {
+                                            this.PumpMessage(client, "notificationclick", eventData.argument);
+                                        });
                                     }
                                 });
                             });
@@ -102,22 +108,57 @@ namespace Notifications.ServiceWorker {
             }
         }
 
+        private static async PumpMessage(client: any, eventOp: string, eventArg: any) : Promise<void> {
+            var num = this._num++;
+            for (var i = 0; i < 128; ++i) {
+                var doWork = new Promise<boolean>(resolve => {
+                    this._resolves[num] = resolve;
+                    var tempChannel = new MessageChannel();
+                    tempChannel.port1.onmessage = this.HandleMessage.bind(this);
+                    client.postMessage({ op: eventOp, payload: { arg: eventArg, seq: num } }, [tempChannel.port2]);
+                });
+                var delay = new Promise<boolean>(resolve => {
+                    this.Delay(this._timeout).then(() => resolve(false));
+                });
+                if (await Promise.race([doWork, delay])) {
+                    break;
+                }
+                console.log("Failed to send notification. Retrying... " + i);
+            }
+            delete this._resolves[num];
+        }
+
+        private static Delay(milliseconds: number): Promise<void> {
+            return new Promise<void>(resolve => {
+                setTimeout(() => resolve(), milliseconds);
+            });
+        }
+
         private static HandleMessage(event: MessageEvent) {
             if (event.data.op) {
                 switch (event.data.op) {
                     case "SET_PORT":
                         var guid = event.data.payload.guid;
-                        this._ports[guid] = event.ports[0];
-                        this._ports[guid].onmessage = this.HandleMessage.bind(this);
-                        this._ports[guid].postMessage({ op: "ack" });
+                        console.log("WTF why are you sending ports?");
+                        //this._ports[guid] = event.ports[0];
+                        //this._ports[guid].onmessage = this.HandleMessage.bind(this);
+                        //this._ports[guid].postMessage({ op: "ack" });
                         break;
                     case "REMOVE_PORT":
-                        var guid = event.data.payload.guid;
-                        delete this._ports[guid];
+                        //var guid = event.data.payload.guid;
+                        //delete this._ports[guid];
+                        //break;
+                        console.log("Do I have any ports to remove?");
                         break;
                     case "SHOW_NOTIFICATION":
                         // @ts-ignore
                         self.registration.showNotification(event.data.payload.title, event.data.payload.options);
+                        break;
+                    case "ACK":
+                        var num = event.data.payload;
+                        if (num in this._resolves) {
+                            this._resolves[num](true);
+                        }
                         break;
                 }
             }

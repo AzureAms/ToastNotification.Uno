@@ -80,12 +80,18 @@ namespace Uno.Extras
             return $"icon: '{WebAssemblyRuntime.EscapeJs(data)}'" + (comma ? "," : string.Empty);
         }
 
-        private static void HandleNotificationClickEvent(string argument)
+        private static async void HandleNotificationClickEvent(string argument)
         {
             argument = argument ?? string.Empty;
             // The ServiceWorker has already taken care of focusing,
             // we now only need to activate the relevant function.
             var app = Application.Current;
+            // The Javascript might finish initializing before the app.
+            while (app == null)
+            {
+                await Task.Delay(128);
+                app = Application.Current;
+            }
             try
             {
                 var args = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);

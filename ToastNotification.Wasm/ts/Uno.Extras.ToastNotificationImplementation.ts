@@ -13,7 +13,7 @@ namespace Uno.Extras {
         private static _doneInit = false;
         private static _serviceWorker: ServiceWorkerRegistration;
         private static _callbackFunc: any;
-        private static _messageChannel: MessageChannel;
+        private static _handledEvents: number[] = [];
         private static _frame: HTMLIFrameElement;
         private static _guid: string;
 
@@ -58,38 +58,10 @@ namespace Uno.Extras {
             this._frame = await this.LoadIFrameAsync(location);
             this._serviceWorker = await this._frame.contentWindow.navigator.serviceWorker.register(this.ServiceWorkerName);
             await this._frame.contentWindow.navigator.serviceWorker.ready;
-            this._messageChannel = new MessageChannel();
             while (!this._frame.contentWindow.navigator.serviceWorker.controller) {
                 await new Promise(f => setTimeout(f, 100));
             }
             this._guid = this.GenerateGuid();
-            window.addEventListener("beforeunload", (ev) => {
-                this._messageChannel.port1.postMessage({ op: "REMOVE_PORT", payload: { guid: this._guid } });
-            });
-            navigator.serviceWorker.addEventListener("message", (ev) => {
-                if (ev.data.op) {
-                    switch (ev.data.op) {
-                        case "CHECK_GUID":
-                            var otherGuid = ev.data.payload;
-                            if (otherGuid == this._guid) {
-                                ev.ports[0].postMessage({ op: "RESPOND_GUILD", payload: true });
-                            }
-                            else {
-                                ev.ports[0].postMessage({ op: "RESPOND_GUILD", payload: false });
-                            }
-                            break;
-                    }
-                }
-            })
-            await new Promise<void>(resolve => {
-                this._messageChannel.port1.onmessage = (ev) => {
-                    if (ev.data.op == "ack") {
-                        this._messageChannel.port1.onmessage = this.HandleMessage.bind(this);
-                        resolve();
-                    }
-                }
-                this._frame.contentWindow.navigator.serviceWorker.controller.postMessage({ op: "SET_PORT", payload: { guid: this._guid } }, [this._messageChannel.port2]);
-            });
         }
 
         private static GenerateGuid(): string {
@@ -133,7 +105,8 @@ namespace Uno.Extras {
             }
             options.actions = actionsArr;
             options.tag = JSON.stringify(actions[0]);
-            this._frame.contentWindow.navigator.serviceWorker.controller.postMessage({ op: "SHOW_NOTIFICATION", payload: { title: title, options: options } });
+            this._serviceWorker.showNotification(title, options);
+            //this._frame.contentWindow.navigator.serviceWorker.controller.postMessage({ op: "SHOW_NOTIFICATION", payload: { title: title, options: options } });
         }
 
         public static QueryPermissionAsync(): Promise<string> {
@@ -176,5 +149,43 @@ namespace Uno.Extras {
         public static GetButtonLimit(): Number {
             return Notification.maxActions;
         }
+
+        public static ToastNotificationImplementation() {
+            this.SetNotificationClickHandler("[ToastNotification.Wasm] Uno.Extras.ToastNotificationImplementation:HandleNotificationClickEvent");
+            navigator.serviceWorker.addEventListener("message", (ev) => {
+                if (ev.data.op) {
+                    switch (ev.data.op) {
+                        case "CHECK_GUID":
+                            var otherGuid = ev.data.payload;
+                            if (otherGuid == this._guid) {
+                                ev.ports[0].postMessage({ op: "RESPOND_GUID", payload: true });
+                            }
+                            else {
+                                ev.ports[0].postMessage({ op: "RESPOND_GUID", payload: false });
+                            }
+                            break;
+                        case "notificationclick":
+                            // Using lastIndexOf for better performance.
+                            if (this._handledEvents.lastIndexOf(ev.data.payload.seq) == -1) {
+                                // Prevents further badgering...
+                                this._handledEvents.push(ev.data.payload.seq);
+                                this._callbackFunc(ev.data.payload.arg);
+                            }
+                            var port = ev.ports[0];
+                            if (port) {
+                                port.postMessage({ op: "ACK", payload: ev.data.payload.seq });
+                            }
+                            // To ensure performance: We should discard some earlier events.
+                            if (this._handledEvents.length > 1000) {
+                                this._handledEvents = this._handledEvents.slice(-100, -1);
+                            }
+                            break;
+                    }
+                }
+            });
+        }
     }
 }
+
+// Invokes the static constructor.
+Uno.Extras.ToastNotificationImplementation.ToastNotificationImplementation();
