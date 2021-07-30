@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "none",
-    "declaration": true,
+//    "declaration": true,
     "diagnostics": true,
     "noImplicitAny": true,
     "outDir": "WasmScripts",

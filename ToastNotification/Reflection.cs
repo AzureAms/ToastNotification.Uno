@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,6 +37,18 @@ namespace Uno.Extras
             methodInfo.Invoke(null, args);
         }
 
+        public static void InvokeVirtual(this object obj, string name, object[] args)
+        {
+            var type = obj.GetType();
+            var methodInfo = type.GetMethod(name, flags);
+            while (methodInfo == null)
+            {
+                type = type.BaseType;
+                methodInfo = type.GetMethod(name, flags);
+            }
+            methodInfo.Invoke(obj, args);
+        }
+
         /// <summary>
         /// Wraps around the lengthy syntax of C# to get MethodInfo
         /// </summary>
@@ -55,8 +68,18 @@ namespace Uno.Extras
                 null,
                 args.Select(arg => arg.GetType()).ToArray(),
                 null);
+            if (constructor != null)
+            {
+                return (TObject)constructor.Invoke(args);
+            }
+            // WASM.
+            else if (typeof(TObject).GetConstructors(flags ^ BindingFlags.Static).Count() == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("No constructors found. Attempting to create raw object.");
+                return (TObject)FormatterServices.GetUninitializedObject(typeof(TObject));
+            }
 
-            return (TObject)constructor.Invoke(args);
+            throw new InvalidOperationException("No suitable constructors found.");
         }
 
         public static TValue GetValue<TObject, TValue>(this TObject obj, string name)
@@ -68,6 +91,21 @@ namespace Uno.Extras
             }
             var propertyInfo = typeof(TObject).GetProperty(name, flags);
             return (TValue)propertyInfo.GetValue(obj);
+        }
+
+        public static void SetProperty<TObject, TValue>(this TObject obj, string name, TValue value)
+        {
+            var propertyInfo = typeof(TObject).GetProperty(name, flags);
+            var setter = propertyInfo.GetSetMethod(nonPublic: true);
+            if (setter != null)
+            {
+                setter.Invoke(obj, new object[] { value });
+            }
+            else
+            {
+                var backingField = typeof(TObject).GetField($"<{propertyInfo.Name}>k__BackingField", flags);
+                backingField.SetValue(obj, value);
+            }
         }
     }
 }

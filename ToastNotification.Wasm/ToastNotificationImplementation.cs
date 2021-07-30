@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Uno.Foundation;
+using Windows.ApplicationModel.Activation;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace Uno.Extras
@@ -27,6 +30,14 @@ namespace Uno.Extras
                 _permission = await QueryPermissionAsync().ConfigureAwait(false);
             }
 
+            var actions = new List<(string type, string argument, string title)>();
+            actions.Add(("foreground", toast.Arguments, "default"));
+
+            if (toast.ToastButtons != null)
+            {
+                actions.AddRange(toast.ToastButtons.Select(button => (button.GetAppropriateType(), button.Arguments, button.Content)));
+            }
+
             if ((bool)_permission)
             {
                 await WebAssemblyRuntime.InvokeAsync($@"
@@ -35,7 +46,8 @@ namespace Uno.Extras
                         {{
                             body: '{WebAssemblyRuntime.EscapeJs(toast.Message)}',
                             {await SetIconIfOveriddenAsync(toast.AppLogoOverride).ConfigureAwait(false)}
-                        }}
+                        }},
+                        {actions.Serialize()}
                     );
                 ");
             }
@@ -68,6 +80,50 @@ namespace Uno.Extras
             return $"icon: '{WebAssemblyRuntime.EscapeJs(data)}'" + (comma ? "," : string.Empty);
         }
 
+        private static void HandleNotificationClickEvent(string argument)
+        {
+            argument = argument ?? string.Empty;
+            // The ServiceWorker has already taken care of focusing,
+            // we now only need to activate the relevant function.
+            var app = Application.Current;
+            try
+            {
+                var args = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
+                args.SetProperty("Argument", argument);
+                app.InvokeVirtual("OnActivated", new object[] { args });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static string GetAppropriateType(this ToastButton button)
+        {
+            if (button.ShouldDissmiss)
+            {
+                return "dismiss";
+            }
+            
+            switch (button.ActivationType)
+            {
+                case ToastActivationType.Foreground:
+                    return "foreground";
+                case ToastActivationType.Background:
+                    return "background";
+                case ToastActivationType.Protocol:
+                    return "protocol";
+                default:
+                    throw new ArgumentOutOfRangeException("Invalid value");
+            }
+        }
+
+        // Don't wanna use Newtonsoft.Json here.
+        private static string Serialize(this List<(string type, string argument, string title)> actions)
+        {
+            return $"[{string.Join(",", actions.Select(action => $"{{type:'{WebAssemblyRuntime.EscapeJs(action.type)}',argument:'{WebAssemblyRuntime.EscapeJs(action.argument)}',title:'{WebAssemblyRuntime.EscapeJs(action.title).Replace("'", "\\'")}'}}"))}]";
+        }
+
         /// <summary>
         /// Queries the permission to send notifications from the user.
         /// </summary>
@@ -94,6 +150,22 @@ namespace Uno.Extras
         public static int GetButtonLimit(this ToastNotification toast)
         {
             return int.Parse(WebAssemblyRuntime.InvokeJS($"{JsType}.GetButtonLimit()"));
+        }
+
+        public static string GetJsInteropName<TFunc>(TFunc func) where TFunc : Delegate
+        {
+            var info = func.GetMethodInfo();
+            var asmName = info.DeclaringType.Assembly.GetName().Name;
+            var typeName = info.DeclaringType.FullName;
+            var funcName = info.Name;
+
+            return $"[{asmName}] {typeName}:{funcName}";
+        }
+
+        static ToastNotificationImplementation()
+        {
+            WebAssemblyRuntime.InvokeJS($"{JsType}.SetNotificationClickHandler" +
+                $"('{WebAssemblyRuntime.EscapeJs(GetJsInteropName<Action<string>>(HandleNotificationClickEvent))}')");
         }
     }
 }
