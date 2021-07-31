@@ -116,6 +116,10 @@ namespace Uno.Extras
             _manager.Notify(notificationId, notification);
         }
 
+
+        // Accoring to https://developer.android.com/reference/android/app/Notification.Builder.html#addAction(android.app.Notification.Action)
+        public int GetButtonLimit() => 3;
+
         private static string GetAppropriateArgument(ToastButton button)
         {
             if (button.ShouldDissmiss)
