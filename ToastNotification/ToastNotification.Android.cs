@@ -24,10 +24,15 @@ namespace Uno.Extras
         private Activity _activity;
         private Application _application;
         private NotificationManager _manager;
-        private static int notificationId;
+        private static int notificationId = 0;
+        private static int intentId;
 
-        private static int totalId = -1;
+        private static int totalId = 0;
         #endregion
+
+        internal const string NotificationAction = "com.azureams.NotificationAction";
+        internal const string NotificationArgumentProperty = "argument";
+        internal const string NotificationIdProperty = "android_notification_id";
 
         public ToastNotification()
         {
@@ -63,10 +68,35 @@ namespace Uno.Extras
                 iconId = Android.Resource.Drawable.SymDefAppIcon;
             }
 
+            var notificationIntent = new Intent(_activity, typeof(ToastNotificationHandler));
+
+            notificationIntent.SetAction(NotificationAction);
+            notificationIntent.PutExtra(NotificationArgumentProperty, "foreground," + Arguments);
+            notificationIntent.PutExtra(NotificationIdProperty, notificationId);
+            notificationIntent.SetAction(Intent.ActionMain);
+
+            var pendingIntent = PendingIntent.GetService(_activity, intentId++, notificationIntent, PendingIntentFlags.UpdateCurrent);
+
             NotificationCompat.Builder builder = new NotificationCompat.Builder(_activity, channelId)
                 .SetContentTitle(Title)
                 .SetContentText(Message)
-                .SetSmallIcon(iconId);
+                .SetSmallIcon(iconId)
+                .SetPriority((int)NotificationPriority.Max)
+                .SetVibrate(new[] { 0L })
+                .SetContentIntent(pendingIntent);
+
+            if (ToastButtons != null)
+            {
+                foreach (var button in ToastButtons)
+                {
+                    var buttonIntent = new Intent(_activity, typeof(ToastNotificationHandler));
+                    buttonIntent.SetAction(NotificationAction);
+                    buttonIntent.PutExtra(NotificationArgumentProperty, GetAppropriateArgument(button));
+                    buttonIntent.PutExtra(NotificationIdProperty, notificationId);
+                    var buttonPendingIntent = PendingIntent.GetService(_activity, intentId++, buttonIntent, PendingIntentFlags.UpdateCurrent);
+                    builder.AddAction(0, button.Content, buttonPendingIntent);
+                }
+            }
 
             if (AppLogoOverride != null)
             {
@@ -75,9 +105,35 @@ namespace Uno.Extras
                 builder.SetLargeIcon(bitmap);
             }
 
+            if (Timestamp != null)
+            {
+                builder.SetShowWhen(true);
+                builder.SetWhen(new DateTimeOffset(Timestamp.Value).ToUnixTimeMilliseconds());
+            }
+
             var notification = builder.Build();
 
             _manager.Notify(notificationId, notification);
+        }
+
+        private static string GetAppropriateArgument(ToastButton button)
+        {
+            if (button.ShouldDissmiss)
+            {
+                return "dismiss,";
+            }
+            switch (button.ActivationType)
+            {
+                case ToastActivationType.Background:
+                    return "background," + button.Arguments;
+                case ToastActivationType.Foreground:
+                    return "foreground," + button.Arguments;
+                case ToastActivationType.Protocol:
+                    return "protocol," + button.Protocol.ToString();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
         }
 
         private Task<NotificationManager> GetNotificationManager()
