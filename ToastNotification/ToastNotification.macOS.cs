@@ -103,27 +103,36 @@ namespace Uno.Extras
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
         }
 
         private static void System_DidActivateNotification(object sender, UNCDidActivateNotificationEventArgs e)
         {
-            var notification = e.Notification;
+            HandleNotification(e.Notification);
+        }
+
+        /// <summary>
+        /// Triggers the notification handler. This method is purposedly left public so that the user
+        /// can handle notifications when the application starts.
+        /// See <see cref="https://developer.apple.com/documentation/foundation/nsusernotificationcenterdelegate/1418378-usernotificationcenter"/>
+        /// for more details.
+        /// </summary>
+        public static void HandleNotification(NSUserNotification notification)
+        {   
             switch (notification.ActivationType)
             {
                 case NSUserNotificationActivationType.ActionButtonClicked:
                     HandleArgument(notification.UserInfo["ActionButtonArgs"] as NSString);
-                break;
+                    break;
                 case NSUserNotificationActivationType.AdditionalActionClicked:
                     HandleArgument(notification.AdditionalActivationAction.Identifier);
-                break;
+                    break;
                 case NSUserNotificationActivationType.ContentsClicked:
                     HandleArgument(notification.UserInfo["DefaultArgs"] as NSString);
-                break;
+                    break;
             }
         }
 
-        public static void HandleArgument(string arg)
+        private static void HandleArgument(string arg)
         {
             var commaIndex = arg.IndexOf(',');
             var argType = arg.Substring(0, commaIndex);
