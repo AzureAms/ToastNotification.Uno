@@ -5,6 +5,26 @@
     <RootNamespace>Uno.Extras</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>ToastNotification.Uno.Wasm</PackageId>
+    <Authors>trungnt2910</Authors>
+    <Company>AzureAms Open Source Community</Company>
+    <Title>Toast Notifications for Uno Platform</Title>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/AzureAms/ToastNotification.Uno</PackageProjectUrl>
+    <Description> 
+      Basic ToastNotification for the Uno Platform. 
+      Shared code works on UWP, Android, WPF, GTK and WASM. 
+      
+      This package contains extension functions needed for WebAssembly projects to handle notifications properly.
+    </Description>
+    <Copyright>Copyright (c) 2021 AzureAms Open Source Community</Copyright>
+    <PackageTags>Notification;Uno;Wasm</PackageTags>
+    <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Uno.Foundation.Runtime.WebAssembly" Version="3.8.13" />
@@ -12,6 +32,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ToastNotification\ToastNotification.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>

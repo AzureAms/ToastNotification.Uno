@@ -5,6 +5,26 @@
     <RootNamespace>Uno.Extras</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>ToastNotification.Uno.Wpf</PackageId>
+    <Authors>trungnt2910</Authors>
+    <Company>AzureAms Open Source Community</Company>
+    <Title>Toast Notifications for Uno Platform</Title>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/AzureAms/ToastNotification.Uno</PackageProjectUrl>
+    <Description> 
+      Basic ToastNotification for the Uno Platform. 
+      Shared code works on UWP, Android, WPF, GTK and WASM. 
+      
+      This package contains extension functions needed for WPF projects to handle notifications properly.
+    </Description>
+    <Copyright>Copyright (c) 2021 AzureAms Open Source Community</Copyright>
+    <PackageTags>Notification;Uno;Wpf</PackageTags>
+    <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
@@ -12,6 +32,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ToastNotification\ToastNotification.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>

@@ -5,6 +5,26 @@
     <RootNamespace>Uno.Extras</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>ToastNotification.Uno.Gtk</PackageId>
+    <Authors>trungnt2910</Authors>
+    <Company>AzureAms Open Source Community</Company>
+    <Title>Toast Notifications for Uno Platform</Title>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/AzureAms/ToastNotification.Uno</PackageProjectUrl>
+    <Description> 
+      Basic ToastNotification for the Uno Platform. 
+      Shared code works on UWP, Android, WPF, GTK and WASM. 
+      
+      This package contains extension functions needed for GTK projects to handle notifications properly.
+    </Description>
+    <Copyright>Copyright (c) 2021 AzureAms Open Source Community</Copyright>
+    <PackageTags>Notification;Uno;Gtk</PackageTags>
+    <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="GtkSharp" Version="3.24.24.34" />
   </ItemGroup>
@@ -13,4 +33,7 @@
     <ProjectReference Include="..\ToastNotification\ToastNotification.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 </Project>

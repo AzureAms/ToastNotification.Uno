@@ -13,6 +13,26 @@
 	<TargetPlatformMinVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.16299.0</TargetPlatformMinVersion>
 	<RootNamespace>Uno.Extras</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>ToastNotification.Uno</PackageId>
+    <Authors>trungnt2910</Authors>
+    <Company>AzureAms Open Source Community</Company>
+    <Title>Toast Notifications for Uno Platform</Title>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/AzureAms/ToastNotification.Uno</PackageProjectUrl>
+    <Description> 
+      Basic ToastNotification for the Uno Platform. 
+      Shared code works on UWP, Android, WPF, GTK and WASM. 
+      
+      This package contains the cross platform elements of ToastNotification. 
+      For some platforms, you may need to install platform-specific packages.
+    </Description>
+    <Copyright>Copyright (c) 2021 AzureAms Open Source Community</Copyright>
+    <PackageTags>Notification;Uno;UWP;Wasm;Wpf;Gtk;Android;MacOS</PackageTags>
+    <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.16299' " Include="Uno.UI" Version="3.8.13"/>
   </ItemGroup>
@@ -38,5 +58,8 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>ToastNotification.Gtk</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 </Project>
