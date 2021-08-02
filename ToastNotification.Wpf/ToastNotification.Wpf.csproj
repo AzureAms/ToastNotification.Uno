@@ -13,10 +13,10 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AzureAms/ToastNotification.Uno</PackageProjectUrl>
     <Description> 
-      Basic ToastNotification for the Uno Platform. 
-      Shared code works on UWP, Android, WPF, GTK and WASM. 
+Basic ToastNotification for the Uno Platform. 
+Shared code works on UWP, Android, WPF, GTK and WASM. 
       
-      This package contains extension functions needed for WPF projects to handle notifications properly.
+This package contains extension functions needed for WPF projects to handle notifications properly.
     </Description>
     <Copyright>Copyright (c) 2021 AzureAms Open Source Community</Copyright>
     <PackageTags>Notification;Uno;Wpf</PackageTags>
