@@ -27,7 +27,7 @@ This package contains extension functions needed for WebAssembly projects to han
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Uno.Foundation.Runtime.WebAssembly" Version="3.8.13" />
+    <PackageReference Include="Uno.Foundation.Runtime.WebAssembly" Version="3.9.1" />
   </ItemGroup>
 
   <ItemGroup>
