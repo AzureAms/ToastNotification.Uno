@@ -85,19 +85,19 @@ jobs:
       run: msbuild -t:pack $env:SOLUTION -p:Configuration=$env:BUILD_CONFIG -p:PackageVersion=${{ steps.gitversion.outputs.semVer }}
 
     - name: Move nuget packages
-      run:  get-childitem *.nupkg -recurse | foreach-object {move-item $_ -destination .}
+      run:  get-childitem *.*nupkg -recurse | foreach-object {move-item $_ -destination .}
       shell: pwsh
 
     - name: Publish nuget artifacts
       uses: actions/upload-artifact@v2
       with:
         name: packages.${{ steps.gitversion.outputs.semVer }}
-        path: ./**/*.nupkg
+        path: ./**/*.*nupkg
 
     - name: Publish dev
       if: github.ref == 'refs/heads/master'
-      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      run: nuget push **\*.*nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
 
     - name: Publish
       if: startsWith(github.ref, 'refs/heads/release')
-      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      run: nuget push **\*.*nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
