@@ -84,10 +84,14 @@ jobs:
     - name: Build nuget packages
       run: msbuild -t:pack $env:SOLUTION -p:Configuration=$env:BUILD_CONFIG -p:PackageVersion=${{ steps.gitversion.outputs.semVer }}
 
+    - name: Move nuget packages
+      run:  get-childitem *.nupkg -recurse | foreach-object {move-item $_ -destination .}
+      shell: pwsh
+
     - name: Publish nuget artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: packages.${{ env.BUILD_VERSION }}
+        name: packages.${{ steps.gitversion.outputs.semVer }}
         path: ./**/*.nupkg
 
     - name: Publish dev
