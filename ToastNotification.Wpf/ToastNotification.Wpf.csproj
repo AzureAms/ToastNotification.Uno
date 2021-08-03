@@ -57,10 +57,11 @@ This package contains extension functions needed for WPF projects to handle noti
     <ProjectReference Include="..\ToastNotification\ToastNotification.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
 	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>ToastNotification.Wpf.RuntimeCompilationTests</_Parameter1>
-    </AssemblyAttribute>	
-  </ItemGroup>
+    </AssemblyAttribute>
+  </ItemGroup>	
 
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\"/>
