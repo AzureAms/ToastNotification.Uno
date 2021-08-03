@@ -2,8 +2,11 @@
 using AppKit;
 using Foundation;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UserNotifications;
 using Windows.ApplicationModel.Activation;
 using Windows.System;
 
@@ -11,13 +14,183 @@ namespace Uno.Extras
 {
     public partial class ToastNotification
     {
-        /// <summary>
-        /// Shows a native Mac OS notification.
-        /// </summary>
+        // To-Do: Research on how long these categories must live.
+        // Keeping a list of all categories for all notifications shown
+        // may lead to serious resource leaks.
+        private static List<UNNotificationCategory> _categories = new List<UNNotificationCategory>();
+        private static TaskCompletionSource<bool> _tcs;
+        private static bool? _permission;
+        private Guid? id;
+
         public async Task Show()
         {
-            // The deprecated NSUserNotification is the only one available on
-            // Xamarin.Mac
+            var info = new NSProcessInfo();
+            if (!info.IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(10, 14, 0)))
+            {
+                await ShowLegacy();
+                return;
+            }
+
+            #region Sharable With iOS
+            #region Untested Code
+            _permission = _permission ?? await QueryPermissionAsync().ConfigureAwait(false);
+
+            if ((bool)_permission)
+            {
+                var content = new UNMutableNotificationContent()
+                {
+                    Title = Title,
+                    Subtitle = "",
+                    Body = Message
+                };
+
+                if (AppLogoOverride != null)
+                {
+                    var stream = await AppLogoOverride.GetStreamAsync();
+                    // We don't need to free this file.
+                    // This file will be automatically moved by the System
+                    // to some Attachment Data Folder.
+                    var tempPath = await CreateTempFileAsync(stream);
+                    stream.Dispose();
+                    content.Attachments = new[]
+                    {
+                        UNNotificationAttachment.FromIdentifier(
+                            string.Empty, 
+                            new NSUrl(tempPath, false),
+                            (NSDictionary)null, 
+                            out var error)
+                    };
+                }
+
+                content.UserInfo = new NSMutableDictionary<NSString, NSString>
+                {
+                    { new NSString("DefaultArgs"), new NSString("foreground," + Arguments) }
+                };
+
+                if (ToastButtons != null)
+                {
+                    var categoryId = Guid.NewGuid().ToString();
+                    var currentCategory = UNNotificationCategory.FromIdentifier(
+                        categoryId,
+                        ToastButtons.Select(button =>
+                        {
+                            return UNNotificationAction.FromIdentifier(
+                                GetAppropriateArgument(button),
+                                button.Content,
+                                GetAppropriateActionOption(button)
+                                );
+                        }).ToArray(),
+                        new string[] { },
+                        UNNotificationCategoryOptions.None
+                        );
+                    lock (_categories)
+                    {
+                        _categories.Add(currentCategory);
+                        UNUserNotificationCenter.Current.SetNotificationCategories(
+                            new NSSet<UNNotificationCategory>(_categories.ToArray()));
+                    }
+                    content.CategoryIdentifier = categoryId;
+                }
+
+                // Create a time-based trigger, interval is in seconds and must be greater than 0.
+                // This seems to be a bit safer than the Calendar-based approach,
+                // as DateTime.Now might have passed when the notification is shown.
+                var trigger = UNTimeIntervalNotificationTrigger.CreateTrigger(0.25, false);
+
+                // Generate a new id for the notification.
+                id = id ?? Guid.NewGuid();
+
+                var request = UNNotificationRequest.FromIdentifier(id.ToString(), content, trigger);
+
+                var completionSource = new TaskCompletionSource<object>();
+
+                UNUserNotificationCenter.Current.AddNotificationRequest(request, (err) =>
+                {
+                    if (err != null)
+                    {
+                        completionSource.SetException(new InvalidOperationException($"Failed to schedule notification: {err}"));
+                    }
+                    completionSource.SetResult(null);
+                });
+
+                await completionSource.Task.ConfigureAwait(false);
+            }
+        }
+
+        public static Task<bool> QueryPermissionAsync()
+        {
+            if (_tcs != null)
+            {
+                return _tcs.Task;
+            }
+
+            lock (_tcs)
+            {
+                _tcs = new TaskCompletionSource<bool>();
+            }
+
+            // request the permission to use local notifications
+            UNUserNotificationCenter.Current.RequestAuthorization(UNAuthorizationOptions.Alert, (approved, err) =>
+            {
+                _tcs.SetResult(approved);
+            });
+
+            return _tcs.Task;
+        }
+
+        private static async Task<string> CreateTempFileAsync(Stream stream)
+        {
+            var fileName = Path.GetTempFileName();
+            var fileStream = File.OpenWrite(fileName);
+            await stream.CopyToAsync(fileStream);
+            fileStream.Dispose();
+            return fileName;
+        }
+
+        private static UNNotificationActionOptions GetAppropriateActionOption(ToastButton button)
+        {
+            if (button.ActivationType == ToastActivationType.Foreground && 
+                !button.ShouldDissmiss)
+            {
+                return UNNotificationActionOptions.Foreground;
+            }
+
+            return UNNotificationActionOptions.None;
+        }
+        #endregion
+        #endregion
+
+        // MacOS has only one Action Button, but offers a drop-down menu
+        // with more options.
+        public int GetButtonLimit() => -1;
+
+        static ToastNotification()
+        {
+            var instance = NSUserNotificationCenter.DefaultUserNotificationCenter;
+            // Should allow showing when application is still in focus, else 
+            // the behavior is inconsistent with other platforms (and annoying for 
+            // new devs).
+            instance.ShouldPresentNotification = (center, notification) => true;
+
+            #region Untested Code
+            instance.DidActivateNotification += System_DidActivateNotification;
+            #endregion
+
+            #region Sharable with iOS
+            #region Untested Code
+            var currentCenter = UNUserNotificationCenter.Current;
+            currentCenter.Delegate = new NotificationCenterDelegates();
+            #endregion
+            #endregion
+        }
+
+        #region Legacy Implementation
+        /// <summary>
+        /// Shows a native Mac OS notification
+        /// using a deprecated implementation.
+        /// </summary>
+        public async Task ShowLegacy()
+        {
             var notification = new NSUserNotification
             {
                 Title = Title,
@@ -63,48 +236,20 @@ namespace Uno.Extras
                     { new NSString("ActionButtonArgs"), (first != null) ? new NSString(GetAppropriateArgument(first)) : new NSString(string.Empty) }
                 };
             }
+            else
+            {
+                notification.UserInfo = new NSMutableDictionary<NSString, NSString>
+                {
+                    { new NSString("DefaultArgs"), new NSString("foreground," + Arguments) }
+                };
+            }
             #endregion
 
             var center = NSUserNotificationCenter.DefaultUserNotificationCenter;
             center.DeliverNotification(notification);
         }
 
-        // MacOS supports only one Action button.
-        public int GetButtonLimit() => 1;
-
-        static ToastNotification()
-        {
-            var instance = NSUserNotificationCenter.DefaultUserNotificationCenter;
-            // Should allow showing when application is still in focus, else 
-            // the behavior is inconsistent with other platforms (and annoying for 
-            // new devs).
-            instance.ShouldPresentNotification = (center, notification) => true;
-
-            #region Untested Code
-            instance.DidActivateNotification += System_DidActivateNotification;
-            #endregion
-        }
-
         #region Untested Code
-        private static string GetAppropriateArgument(ToastButton button)
-        {
-            if (button.ShouldDissmiss)
-            {
-                return "dismiss,";
-            }
-            switch (button.ActivationType)
-            {
-                case ToastActivationType.Background:
-                    return "background," + button.Arguments;
-                case ToastActivationType.Foreground:
-                    return "foreground," + button.Arguments;
-                case ToastActivationType.Protocol:
-                    return "protocol," + button.Protocol.ToString();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
         private static void System_DidActivateNotification(object sender, UNCDidActivateNotificationEventArgs e)
         {
             HandleNotification(e.Notification);
@@ -129,6 +274,27 @@ namespace Uno.Extras
                 case NSUserNotificationActivationType.ContentsClicked:
                     HandleArgument(notification.UserInfo["DefaultArgs"] as NSString);
                     break;
+            }
+        }
+        #endregion
+        #endregion
+
+        private static string GetAppropriateArgument(ToastButton button)
+        {
+            if (button.ShouldDissmiss)
+            {
+                return "dismiss,";
+            }
+            switch (button.ActivationType)
+            {
+                case ToastActivationType.Background:
+                    return "background," + button.Arguments;
+                case ToastActivationType.Foreground:
+                    return "foreground," + button.Arguments;
+                case ToastActivationType.Protocol:
+                    return "protocol," + button.Protocol.ToString();
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -174,6 +340,47 @@ namespace Uno.Extras
         {
             NSRunningApplication.CurrentApplication.Activate(NSApplicationActivationOptions.ActivateIgnoringOtherWindows);
         }
+
+        #region Sharable With iOS
+        #region Untested Code
+        private class NotificationCenterDelegates : UNUserNotificationCenterDelegate
+        {
+            public override void DidReceiveNotificationResponse(
+                UNUserNotificationCenter center,
+                UNNotificationResponse response, 
+                Action completionHandler)
+            {
+                if (response.IsDismissAction)
+                {
+                    return;
+                }
+                else if (response.IsDefaultAction)
+                {
+                    var content = response.Notification.Request.Content;
+                    var obj = content.UserInfo["DefaultArgs"];
+                    if (obj == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Warning: Default argument is null.");
+                    }
+                    var argument = obj.ToString();
+                    HandleArgument(argument);
+                }
+                else if (response.IsCustomAction)
+                {
+                    HandleArgument(response.ActionIdentifier);
+                }
+                completionHandler();
+            }
+
+            public override void WillPresentNotification(
+                UNUserNotificationCenter center, 
+                UNNotification notification, 
+                Action<UNNotificationPresentationOptions> completionHandler)
+            {
+                completionHandler(UNNotificationPresentationOptions.Alert);
+            }
+        }
+        #endregion
         #endregion
     }
 }
