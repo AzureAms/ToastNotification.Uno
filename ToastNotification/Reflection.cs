@@ -13,38 +13,39 @@ namespace Uno.Extras
     {
         const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 
-        public static TResult Invoke<TObject, TResult>(this TObject obj, string name, object[] args)
+        public static TResult Invoke<TObject, TResult>(this TObject obj, string name, object[] args, Type[] types = null)
         {
-            var methodInfo = typeof(TObject).GetMethod(name, flags);
+            var methodInfo = typeof(TObject).GetMethod(name, flags, null, types ?? args.ToTypeArray(), null);
             return (TResult)methodInfo.Invoke(obj, args);
         }
 
-        public static void Invoke<TObject>(this TObject obj, string name, object[] args)
+        public static void Invoke<TObject>(this TObject obj, string name, object[] args, Type[] types = null)
         {
-            var methodInfo = typeof(TObject).GetMethod(name, flags);
+            var methodInfo = typeof(TObject).GetMethod(name, flags, null, types ?? args.ToTypeArray(), null);
             methodInfo.Invoke(obj, args);
         }
 
-        public static TResult InvokeStatic<TResult>(this Type type, string name, object[] args)
+        public static TResult InvokeStatic<TResult>(this Type type, string name, object[] args, Type[] types = null)
         {
-            var methodInfo = type.GetMethod(name, flags ^ BindingFlags.Instance);
+            var methodInfo = type.GetMethod(name, flags ^ BindingFlags.Instance, null, types ?? args.ToTypeArray(), null);
             return (TResult)methodInfo.Invoke(null, args);
         }
 
-        public static void InvokeStatic(this Type type, string name, object[] args)
+        public static void InvokeStatic(this Type type, string name, object[] args, Type[] types = null)
         {
-            var methodInfo = type.GetMethod(name, flags ^ BindingFlags.Instance);
+            var methodInfo = type.GetMethod(name, flags ^ BindingFlags.Instance, null, types ?? args.ToTypeArray(), null);
             methodInfo.Invoke(null, args);
         }
 
-        public static void InvokeVirtual(this object obj, string name, object[] args)
+        public static void InvokeVirtual(this object obj, string name, object[] args, Type[] types = null)
         {
+            types = types ?? args.ToTypeArray();
             var type = obj.GetType();
-            var methodInfo = type.GetMethod(name, flags);
+            var methodInfo = type.GetMethod(name, flags, null, types, null);
             while (methodInfo == null)
             {
                 type = type.BaseType;
-                methodInfo = type.GetMethod(name, flags);
+                methodInfo = type.GetMethod(name, flags, null, types, null);
             }
             methodInfo.Invoke(obj, args);
         }
@@ -106,6 +107,11 @@ namespace Uno.Extras
                 var backingField = typeof(TObject).GetField($"<{propertyInfo.Name}>k__BackingField", flags);
                 backingField.SetValue(obj, value);
             }
+        }
+
+        private static Type[] ToTypeArray(this object[] obj)
+        {
+            return obj.Select(o => o.GetType()).ToArray();
         }
     }
 }
