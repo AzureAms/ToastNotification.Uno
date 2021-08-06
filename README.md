@@ -16,7 +16,7 @@ using Uno.Extras;
             var notification = new ToastNotification();
             notification.Title = "Toaster";
             notification.Message = "Hello world!";
-            notification.AppLogoOverride = new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri("https://static.wikia.nocookie.net/os-tan/images/8/8a/764227.png"));
+            notification.AppLogoOverride = new LogoSource(new Uri("https://static.wikia.nocookie.net/os-tan/images/8/8a/764227.png"));
             notification.Show();
 ```
 
