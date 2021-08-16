@@ -20,12 +20,13 @@ namespace Uno.Extras
         private static List<UNNotificationCategory> _categories = new List<UNNotificationCategory>();
         private static TaskCompletionSource<bool> _tcs;
         private static bool? _permission;
+        private static bool? _legacyBehavior;
         private Guid? id;
 
         public async Task Show()
         {
-            var info = new NSProcessInfo();
-            if (!info.IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(10, 14, 0)))
+            _legacyBehavior = _legacyBehavior ?? CheckNewApiVersion();
+            if ((bool)_legacyBehavior)
             {
                 await ShowLegacy();
                 return;
@@ -279,6 +280,12 @@ namespace Uno.Extras
         #endregion
         #endregion
 
+        private static bool CheckNewApiVersion()
+        {
+            var info = new NSProcessInfo();
+            return !info.IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(10, 14, 0));
+        }
+
         private static string GetAppropriateArgument(ToastButton button)
         {
             if (button.ShouldDissmiss)
@@ -322,13 +329,14 @@ namespace Uno.Extras
 
         private static void ActivateForeground(string argument)
         {
-            FocusApp();
+            FocusAppAsync().ContinueWith((task) =>
+            {
+                var app = Windows.UI.Xaml.Application.Current;
 
-            var app = Windows.UI.Xaml.Application.Current;
-
-            var toastActivatedEventArgs = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
-            System.Diagnostics.Debug.WriteLine($"{toastActivatedEventArgs.Argument == null}");
-            app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
+                var toastActivatedEventArgs = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
+                System.Diagnostics.Debug.WriteLine($"{toastActivatedEventArgs.Argument == null}");
+                app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
+            });
         }
 
         private static void ActivateBackground(string argument)
@@ -336,9 +344,23 @@ namespace Uno.Extras
             throw new NotImplementedException("Uno Platform does not support background tasks");
         }
 
-        private static void FocusApp()
+        private static async Task FocusAppAsync()
         {
-            NSRunningApplication.CurrentApplication.Activate(NSApplicationActivationOptions.ActivateIgnoringOtherWindows);
+            // New UserNotifications API should automatically focus our application.
+            if (!(bool)_legacyBehavior)
+            {
+                return;
+            }
+            var currentApp = NSRunningApplication.CurrentApplication;
+            currentApp.Activate(NSApplicationActivationOptions.ActivateIgnoringOtherWindows);
+
+            while (!currentApp.Active)
+            {
+                System.Diagnostics.Debug.WriteLine("Waiting for current window to activate...");
+                // To avoid a UI deadlock, sleep for a while to allow 
+                // other events to proceed.
+                await Task.Delay(100).ConfigureAwait(true);
+            }
         }
 
         #region Sharable With iOS
@@ -377,7 +399,7 @@ namespace Uno.Extras
                 UNNotification notification, 
                 Action<UNNotificationPresentationOptions> completionHandler)
             {
-                completionHandler(UNNotificationPresentationOptions.Alert);
+                completionHandler(UNNotificationPresentationOptions.Banner);
             }
         }
         #endregion
