@@ -207,7 +207,6 @@ namespace Notification.FrameworkDependent
             _secondaryButton.PreviewMouseDown += ActionButton_MouseAction;
             _secondaryButton.PreviewMouseUp += SecondaryButton_MouseUp;
             _secondaryButton.PreviewMouseUp += ActionButton_MouseAction;
-            _secondaryButton.Click += SecondaryButton_Click;
             _secondaryButton.GotMouseCapture += ActionButton_GotMouseCapture;
 
             _backgroundRect = _control.FindName("BackgroundRect") as Rectangle;
