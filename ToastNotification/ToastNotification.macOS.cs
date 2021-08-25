@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UserNotifications;
 using Windows.ApplicationModel.Activation;
 using Windows.System;
+using Windows.UI.Core;
 
 namespace Uno.Extras
 {
@@ -18,9 +19,11 @@ namespace Uno.Extras
         // Keeping a list of all categories for all notifications shown
         // may lead to serious resource leaks.
         private static List<UNNotificationCategory> _categories = new List<UNNotificationCategory>();
-        private static TaskCompletionSource<bool> _tcs;
         private static bool? _permission;
-        private static bool? _legacyBehavior;
+        // Currently, the new MacOS implementation does not work.
+        // Therefore, the current implementation is restricted to the 
+        // deprecated NSUserNotification implementation.
+        private static bool? _legacyBehavior = true;
         private Guid? id;
 
         public async Task Show()
@@ -32,8 +35,8 @@ namespace Uno.Extras
                 return;
             }
 
-            #region Sharable With iOS
-            #region Untested Code
+#region Sharable With iOS
+#region Untested Code
             _permission = _permission ?? await QueryPermissionAsync().ConfigureAwait(false);
 
             if ((bool)_permission)
@@ -118,25 +121,14 @@ namespace Uno.Extras
             }
         }
 
-        public static Task<bool> QueryPermissionAsync()
+        public static async Task<bool> QueryPermissionAsync()
         {
-            if (_tcs != null)
-            {
-                return _tcs.Task;
-            }
-
-            lock (_tcs)
-            {
-                _tcs = new TaskCompletionSource<bool>();
-            }
-
             // request the permission to use local notifications
-            UNUserNotificationCenter.Current.RequestAuthorization(UNAuthorizationOptions.Alert, (approved, err) =>
-            {
-                _tcs.SetResult(approved);
-            });
+            var (approved, err) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(UNAuthorizationOptions.Alert);
 
-            return _tcs.Task;
+            System.Diagnostics.Debug.WriteLine(err);
+
+            return approved;
         }
 
         private static async Task<string> CreateTempFileAsync(Stream stream)
@@ -158,8 +150,8 @@ namespace Uno.Extras
 
             return UNNotificationActionOptions.None;
         }
-        #endregion
-        #endregion
+#endregion
+#endregion
 
         // MacOS has only one Action Button, but offers a drop-down menu
         // with more options.
@@ -172,20 +164,17 @@ namespace Uno.Extras
             // the behavior is inconsistent with other platforms (and annoying for 
             // new devs).
             instance.ShouldPresentNotification = (center, notification) => true;
-
-            #region Untested Code
             instance.DidActivateNotification += System_DidActivateNotification;
-            #endregion
 
-            #region Sharable with iOS
-            #region Untested Code
+#region Sharable with iOS
+#region Untested Code
             var currentCenter = UNUserNotificationCenter.Current;
             currentCenter.Delegate = new NotificationCenterDelegates();
-            #endregion
-            #endregion
+#endregion
+#endregion
         }
 
-        #region Legacy Implementation
+#region Legacy Implementation
         /// <summary>
         /// Shows a native Mac OS notification
         /// using a deprecated implementation.
@@ -209,7 +198,6 @@ namespace Uno.Extras
                 notification.ContentImage = new AppKit.NSImage(data);
             }
 
-            #region Untested Code
             if (ToastButtons != null)
             {
                 var first = ToastButtons.FirstOrDefault();
@@ -220,6 +208,7 @@ namespace Uno.Extras
                 }
                 // This is buggy, doesn't seem to work.
                 // https://stackoverflow.com/questions/31447882/property-additionalactions-of-nsusernotification-seems-not-working
+                // It does work on Big Sur?
                 if (ToastButtons.Count() >= 2)
                 {
                     notification.AdditionalActions =
@@ -244,18 +233,16 @@ namespace Uno.Extras
                     { new NSString("DefaultArgs"), new NSString("foreground," + Arguments) }
                 };
             }
-            #endregion
 
             var center = NSUserNotificationCenter.DefaultUserNotificationCenter;
             center.DeliverNotification(notification);
         }
 
-        #region Untested Code
         private static void System_DidActivateNotification(object sender, UNCDidActivateNotificationEventArgs e)
         {
             HandleNotification(e.Notification);
         }
-
+        
         /// <summary>
         /// Triggers the notification handler. This method is purposedly left public so that the user
         /// can handle notifications when the application starts.
@@ -263,22 +250,21 @@ namespace Uno.Extras
         /// for more details.
         /// </summary>
         public static void HandleNotification(NSUserNotification notification)
-        {   
+        {
             switch (notification.ActivationType)
             {
                 case NSUserNotificationActivationType.ActionButtonClicked:
-                    HandleArgument(notification.UserInfo["ActionButtonArgs"] as NSString);
+                    HandleArgument(notification.UserInfo["ActionButtonArgs"] as NSString ?? "foreground,");
                     break;
                 case NSUserNotificationActivationType.AdditionalActionClicked:
                     HandleArgument(notification.AdditionalActivationAction.Identifier);
                     break;
                 case NSUserNotificationActivationType.ContentsClicked:
-                    HandleArgument(notification.UserInfo["DefaultArgs"] as NSString);
+                    HandleArgument(notification.UserInfo["DefaultArgs"] as NSString ?? "foreground,");
                     break;
             }
         }
-        #endregion
-        #endregion
+#endregion
 
         private static bool CheckNewApiVersion()
         {
@@ -329,13 +315,17 @@ namespace Uno.Extras
 
         private static void ActivateForeground(string argument)
         {
-            FocusAppAsync().ContinueWith((task) =>
+            FocusAppAsync().ContinueWith(async (task) =>
             {
                 var app = Windows.UI.Xaml.Application.Current;
 
                 var toastActivatedEventArgs = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
                 System.Diagnostics.Debug.WriteLine($"{toastActivatedEventArgs.Argument == null}");
-                app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
+                await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+                () =>
+                {
+                    app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
+                });
             });
         }
 
@@ -351,8 +341,8 @@ namespace Uno.Extras
             {
                 return;
             }
-            var currentApp = NSRunningApplication.CurrentApplication;
-            currentApp.Activate(NSApplicationActivationOptions.ActivateIgnoringOtherWindows);
+            var currentApp = NSApplication.SharedApplication;
+            currentApp.ActivateIgnoringOtherApps(true);
 
             while (!currentApp.Active)
             {
@@ -361,10 +351,16 @@ namespace Uno.Extras
                 // other events to proceed.
                 await Task.Delay(100).ConfigureAwait(true);
             }
+
+            // currentApp.MainWindow is null and does not work.
+            // The Uno Platform app should have at least one window,
+            // (and only one window!)
+            // so this function should be safe.
+            currentApp.DangerousWindows[0].MakeKeyAndOrderFront(null);
         }
 
-        #region Sharable With iOS
-        #region Untested Code
+#region Sharable With iOS
+#region Untested Code
         private class NotificationCenterDelegates : UNUserNotificationCenterDelegate
         {
             public override void DidReceiveNotificationResponse(
@@ -402,8 +398,8 @@ namespace Uno.Extras
                 completionHandler(UNNotificationPresentationOptions.Banner);
             }
         }
-        #endregion
-        #endregion
+#endregion
+#endregion
     }
 }
 #endif
