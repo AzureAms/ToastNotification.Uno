@@ -38,9 +38,13 @@ namespace Notification.FrameworkDependent
         static IntPtr GetClassLongPtr(IntPtr hWnd, int nIndex)
         {
             if (IntPtr.Size == 4)
+            {
                 return new IntPtr((long)GetClassLong32(hWnd, nIndex));
+            }
             else
+            {
                 return GetClassLong64(hWnd, nIndex);
+            }
         }
 
         public static IntPtr GetSmallWindowIcon(IntPtr hWnd)
@@ -52,15 +56,16 @@ namespace Notification.FrameworkDependent
                 hIcon = SendMessage(hWnd, WM_GETICON, ICON_SMALL2, IntPtr.Zero);
 
                 if (hIcon == IntPtr.Zero)
+                {
                     hIcon = GetClassLongPtr(hWnd, GCL_HICON);
+                }
 
                 if (hIcon == IntPtr.Zero)
+                {
                     hIcon = LoadIcon(IntPtr.Zero, (IntPtr)0x7F00/*IDI_APPLICATION*/);
+                }
 
-                if (hIcon != IntPtr.Zero)
-                    return hIcon;
-                else
-                    return IntPtr.Zero;
+                return hIcon;
             }
             catch (Exception)
             {

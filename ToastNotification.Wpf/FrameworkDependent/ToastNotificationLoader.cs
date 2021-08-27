@@ -335,7 +335,7 @@ namespace Notification.FrameworkDependent
         #region Toast Notification Mouse Controls
         private double _initialXPosition;
         private double _deltaX;
-        private bool _mouseWasDown = false;
+        private bool _mouseWasDown;
 
         private void ToastNotification_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -419,12 +419,12 @@ namespace Notification.FrameworkDependent
                 _popup.HorizontalOffset = rect.Right - _control.ActualWidth - 10;
                 _popup.VerticalOffset = rect.Bottom - _control.ActualHeight - 10;
 
-                _control.BeginAnimation(FrameworkElement.MarginProperty, new ThicknessAnimationUsingKeyFrames()
+                _control.BeginAnimation(FrameworkElement.MarginProperty, new ThicknessAnimationUsingKeyFrames
                 {
                     Duration = TimeSpan.Zero,
-                    KeyFrames = new ThicknessKeyFrameCollection()
+                    KeyFrames = new ThicknessKeyFrameCollection
                     {
-                        new DiscreteThicknessKeyFrame()
+                        new DiscreteThicknessKeyFrame
                         {
                             Value = new Thickness(0, 0, 0, 0)
                         }
@@ -443,7 +443,7 @@ namespace Notification.FrameworkDependent
 
         #region Show and Hide
         private Popup _popup;
-        private object _locker = new object();
+        private readonly object _locker = new object();
 
         public Task ShowAsync()
         {
@@ -454,7 +454,7 @@ namespace Notification.FrameworkDependent
                     return Task.CompletedTask;
                 }
 
-                _popup = new Popup()
+                _popup = new Popup
                 {
                     AllowsTransparency = true,
                     Child = _control,
@@ -465,7 +465,6 @@ namespace Notification.FrameworkDependent
 
             var contentImage = _control.FindName("ContentImage") as Image;
             var contentTextPanel = _control.FindName("ContentTextPanel") as UIElement;
-            var contentGrid = _control.FindName("ContentGrid") as Grid;
 
             if (ContentImageSource == null)
             {
@@ -532,7 +531,7 @@ namespace Notification.FrameworkDependent
                 _popup.VerticalOffset = rect.Bottom - _control.ActualHeight - 10;
 
                 tcs.SetResult(null);
-            };
+            }
         }
 
         public Task HideAsync()

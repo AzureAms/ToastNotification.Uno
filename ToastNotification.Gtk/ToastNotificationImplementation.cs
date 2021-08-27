@@ -103,11 +103,11 @@ namespace Uno.Extras
 
         private static async Task RegisterAsync()
         {
-            await _service.WatchActionInvokedAsync(HandleActivation);
-            await _service.WatchNotificationClosedAsync(HandleClose);
+            await _service.WatchActionInvokedAsync(OnActivation);
+            await _service.WatchNotificationClosedAsync(OnNotificationClose);
         }
 
-        private static async void HandleActivation((uint id, string key) arg)
+        private static async void OnActivation((uint id, string key) arg)
         {
             await _dictionarySemaphore.WaitAsync();
             if (!_notificationIds.ContainsKey(arg.id))
@@ -120,7 +120,7 @@ namespace Uno.Extras
             }
             else
             {
-                var splitIndex = arg.key.IndexOf(",");
+                var splitIndex = arg.key.IndexOf(",", StringComparison.InvariantCulture);
                 if (splitIndex == -1)
                 {
                     goto bail;
@@ -140,6 +140,12 @@ namespace Uno.Extras
                     case "foreground":
                         ActivateApp(data);
                     break;
+                    default:
+#if DEBUG
+                        Console.WriteLine($"Unknown activation type: {operation}");
+#endif
+                        ActivateApp(data);
+                    break;
                 }
             }
             // Signals are somehow frequently called twice.
@@ -148,7 +154,7 @@ namespace Uno.Extras
 bail:       _dictionarySemaphore.Release();
         }
 
-        private static async void HandleClose((uint id, uint reason) arg)
+        private static async void OnNotificationClose((uint id, uint reason) arg)
         {
             await _dictionarySemaphore.WaitAsync();
             _notificationIds.Remove(arg.id);

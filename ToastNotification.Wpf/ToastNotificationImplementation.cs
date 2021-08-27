@@ -97,13 +97,13 @@ namespace Uno.Extras
                 if (actions.Length >= 1)
                 {
                     loader.PrimaryButtonText = actions[0].Content;
-                    loader.PrimaryButtonClick += (EventHandler)actions[0].HandleButtonClick;
+                    loader.PrimaryButtonClick += (EventHandler)actions[0].OnButtonClick;
                 }
 
                 if (actions.Length >= 2)
                 {
                     loader.SecondaryButtonText = actions[1].Content;
-                    loader.SecondaryButtonClick += (EventHandler)actions[1].HandleButtonClick;
+                    loader.SecondaryButtonClick += (EventHandler)actions[1].OnButtonClick;
                 }
 
                 if (toast.Timestamp != null)
@@ -118,7 +118,7 @@ namespace Uno.Extras
                     loader.SetImageSource(imageStream);
                 }
 
-                loader.NotificationClick += (EventHandler)toast.HandleToastClick;
+                loader.NotificationClick += (EventHandler)toast.OnToastClick;
 
                 loader.CloseRequested += (EventHandler)HandleCloseRequest;
 
@@ -269,12 +269,12 @@ namespace Uno.Extras
             throw new NotImplementedException("Uno Platform does not support background tasks");
         }
 
-        private static async void HandleToastClick(this ToastNotification toast, object sender, EventArgs args)
+        private static async void OnToastClick(this ToastNotification toast, object sender, EventArgs args)
         {
             await ActivateApp(toast.Arguments).ConfigureAwait(false);
         }
 
-        private static async void HandleButtonClick(this ToastButton button, object sender, EventArgs args)
+        private static async void OnButtonClick(this ToastButton button, object sender, EventArgs args)
         {
             if (button.ShouldDissmiss)
             {
@@ -290,6 +290,10 @@ namespace Uno.Extras
                 break;
                 case ToastActivationType.Protocol:
                     _ = Launcher.LaunchUriAsync(button.Protocol);
+                break;
+                default:
+                    Debug.WriteLine($"Unknown activation type: {button.ActivationType}");
+                    await ActivateApp(button.Arguments).ConfigureAwait(false);
                 break;
             }
         }

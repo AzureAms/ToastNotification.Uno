@@ -58,7 +58,6 @@ namespace Notification.Natives
            IntPtr lpParam);
 
         static readonly IntPtr HWND_MESSAGE = new IntPtr(-3);
-        static readonly short _regResult;
         // Keeps a reference so that the Garbage Collector won't mess up.
         static readonly WNDPROC _mainWndProc = WndProc;
 
@@ -66,7 +65,7 @@ namespace Notification.Natives
 
         static MessageWindow()
         {
-            var wndClass = new WNDCLASSEX()
+            var wndClass = new WNDCLASSEX
             {
                 cbSize = Marshal.SizeOf(typeof(WNDCLASSEX)),
                 lpfnWndProc = _mainWndProc,
@@ -74,11 +73,11 @@ namespace Notification.Natives
                 lpszClassName = typeof(MessageWindow).FullName
             };
 
-            _regResult = RegisterClassEx(ref wndClass);
+            var _regResult = RegisterClassEx(ref wndClass);
 
             if (_regResult == 0)
             {
-                throw new InvalidOperationException("Cannot register MessageWindow class");
+                Debug.WriteLine($"Failed to register MessageWindow class: {Marshal.GetLastWin32Error()}");
             }
 
         }

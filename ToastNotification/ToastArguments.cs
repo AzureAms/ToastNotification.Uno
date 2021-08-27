@@ -45,7 +45,7 @@ namespace Uno.Extras
 
         internal ToastArguments Clone()
         {
-            return new ToastArguments()
+            return new ToastArguments
             {
                 _dictionary = new Dictionary<string, string>(_dictionary)
             };
@@ -452,7 +452,7 @@ namespace Uno.Extras
         /// Serializes the key-value pairs into a string that can be used within a toast notification.
         /// </summary>
         /// <returns>A string that can be used within a toast notification.</returns>
-        public sealed override string ToString()
+        public override string ToString()
         {
             return string.Join(Separator, this.Select(pair => EncodePair(pair.Key, pair.Value)));
         }

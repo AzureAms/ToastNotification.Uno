@@ -1,4 +1,6 @@
-﻿//@ts-ignore
+﻿/* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+
+//@ts-ignore
 _self = self;
 declare var _self: any;
 
@@ -14,16 +16,16 @@ namespace Notifications.ServiceWorker {
             }
             self.onmessage = this.HandleMessage.bind(this);
 
-            self.addEventListener('install', function (event: any) {
+            self.addEventListener("install", function (event: any) {
                 event.waitUntil(_self.skipWaiting()); // Activate worker immediately
             });
 
-            self.addEventListener('activate', function (event: any) {
+            self.addEventListener("activate", function (event: any) {
                 event.waitUntil(_self.clients.claim()); // Become available to all pages
             });
 
             // @ts-ignore
-            self.onnotificationclick = (event : any) => {
+            self.onnotificationclick = (event: any) => {
                 event.notification.close();
 
                 var eventId: string;
@@ -49,7 +51,7 @@ namespace Notifications.ServiceWorker {
                         var url = eventData.argument;
                         _self.clients.openWindow(url);
                         break;
-                    case "foreground":                    
+                    case "foreground":
                         var mainPageUrl = (new URL("..", _self.registration.scope)).href;
 
                         // This looks to see if the current is already open and
@@ -65,10 +67,10 @@ namespace Notifications.ServiceWorker {
                                             return Promise.resolve(true);
                                         }
                                         return new Promise<boolean>(resolveChild => {
-                                            if (client.url != mainPageUrl) {
+                                            if (client.url !== mainPageUrl) {
                                                 resolveChild(false);
                                             }
-                                            if (!('focus' in client)) {
+                                            if (!("focus" in client)) {
                                                 resolveChild(false);
                                             }
                                             new Promise<boolean>(resolveCommunication => {
@@ -89,7 +91,7 @@ namespace Notifications.ServiceWorker {
                                                     });
                                                 }
                                             });
-                                        })
+                                        });
                                     });
                                 }, Promise.resolve(false)).then((isSuccessful: boolean) => {
                                     if (isSuccessful) {
@@ -105,7 +107,7 @@ namespace Notifications.ServiceWorker {
                         }));
                         break;
                 }
-            }
+            };
         }
 
         private static async PumpMessage(client: any, eventOp: string, eventArg: any) : Promise<void> {
@@ -123,7 +125,7 @@ namespace Notifications.ServiceWorker {
                 if (await Promise.race([doWork, delay])) {
                     break;
                 }
-                console.log("Failed to send notification. Retrying... " + i);
+                console.warn("Failed to send notification. Retrying... " + i);
             }
             delete this._resolves[num];
         }
@@ -139,7 +141,7 @@ namespace Notifications.ServiceWorker {
                 switch (event.data.op) {
                     case "SET_PORT":
                         var guid = event.data.payload.guid;
-                        console.log("WTF why are you sending ports?");
+                        console.warn("WTF why are you sending ports?");
                         //this._ports[guid] = event.ports[0];
                         //this._ports[guid].onmessage = this.HandleMessage.bind(this);
                         //this._ports[guid].postMessage({ op: "ack" });
@@ -148,7 +150,7 @@ namespace Notifications.ServiceWorker {
                         //var guid = event.data.payload.guid;
                         //delete this._ports[guid];
                         //break;
-                        console.log("Do I have any ports to remove?");
+                        console.warn("Do I have any ports to remove?");
                         break;
                     case "SHOW_NOTIFICATION":
                         // @ts-ignore

@@ -46,7 +46,7 @@ namespace Uno.Extras {
                 frame.height = "0";
                 frame.width = "0";
                 frame.src = src;
-                frame.addEventListener("load", ev => { resolve(frame) });
+                frame.addEventListener("load", ev => { resolve(frame); });
                 document.body.appendChild(frame);
             });
         }
@@ -67,8 +67,8 @@ namespace Uno.Extras {
         private static GenerateGuid(): string {
             const a = crypto.getRandomValues(new Uint16Array(8));
             let i = 0;
-            return '00-0-4-1-000'.replace(/[^-]/g,
-                s => (a[i++] + Number.parseInt(s) * 0x10000 >> Number.parseInt(s)).toString(16).padStart(4, '0')
+            return "00-0-4-1-000".replace(/[^-]/g,
+                s => (a[i++] + Number.parseInt(s) * 0x10000 >> Number.parseInt(s)).toString(16).padStart(4, "0")
             );
         }
 
@@ -128,14 +128,14 @@ namespace Uno.Extras {
                 }
 
                 // Let's check if the browser supports notifications
-                if (!('Notification' in window)) {
-                    resolve('FeatureNotSupported');
+                if (!("Notification" in window)) {
+                    resolve("FeatureNotSupported");
                 }
                 else {
                     if (checkNotificationPromise()) {
                         Notification.requestPermission().then((permission) => {
                             handlePermission(permission);
-                        })
+                        });
                     }
                     else {
                         Notification.requestPermission(function (permission) {
@@ -151,13 +151,13 @@ namespace Uno.Extras {
         }
 
         public static ToastNotificationImplementation() {
-            this.SetNotificationClickHandler("[ToastNotification.Wasm] Uno.Extras.ToastNotificationImplementation:HandleNotificationClickEvent");
+            this.SetNotificationClickHandler("[ToastNotification.Wasm] Uno.Extras.ToastNotificationImplementation:OnNotificationClick");
             navigator.serviceWorker.addEventListener("message", (ev) => {
                 if (ev.data.op) {
                     switch (ev.data.op) {
                         case "CHECK_GUID":
                             var otherGuid = ev.data.payload;
-                            if (otherGuid == this._guid) {
+                            if (otherGuid === this._guid) {
                                 ev.ports[0].postMessage({ op: "RESPOND_GUID", payload: true });
                             }
                             else {
@@ -166,7 +166,7 @@ namespace Uno.Extras {
                             break;
                         case "notificationclick":
                             // Using lastIndexOf for better performance.
-                            if (this._handledEvents.lastIndexOf(ev.data.payload.seq) == -1) {
+                            if (this._handledEvents.lastIndexOf(ev.data.payload.seq) === -1) {
                                 // Prevents further badgering...
                                 this._handledEvents.push(ev.data.payload.seq);
                                 this._callbackFunc(ev.data.payload.arg);

@@ -80,7 +80,7 @@ namespace Uno.Extras
             return $"icon: '{WebAssemblyRuntime.EscapeJs(data)}'" + (comma ? "," : string.Empty);
         }
 
-        private static async void HandleNotificationClickEvent(string argument)
+        private static async void OnNotificationClick(string argument)
         {
             argument = argument ?? string.Empty;
             // The ServiceWorker has already taken care of focusing,
@@ -100,7 +100,11 @@ namespace Uno.Extras
             }
             catch (Exception e)
             {
+                // Should ignore this exception, and write it
+                // to the console.
+#if DEBUG
                 Console.WriteLine(e);
+#endif
             }
         }
 
@@ -171,7 +175,7 @@ namespace Uno.Extras
         static ToastNotificationImplementation()
         {
             WebAssemblyRuntime.InvokeJS($"{JsType}.SetNotificationClickHandler" +
-                $"('{WebAssemblyRuntime.EscapeJs(GetJsInteropName<Action<string>>(HandleNotificationClickEvent))}')");
+                $"('{WebAssemblyRuntime.EscapeJs(GetJsInteropName<Action<string>>(OnNotificationClick))}')");
         }
     }
 }

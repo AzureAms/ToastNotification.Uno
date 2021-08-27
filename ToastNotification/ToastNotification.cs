@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Windows.UI.Xaml.Media.Imaging;
@@ -86,6 +87,8 @@ namespace Uno.Extras
             return this;
         }
 
+        internal 
+
         #region AlmostCopiedMITLicensedCodeFromWCT
         /// <summary>
         /// Adds a key/value to the activation arguments that will be returned when the toast notification or its buttons are clicked.
@@ -113,7 +116,7 @@ namespace Uno.Extras
 #endif
         public ToastNotification AddArgument(string key, int value)
         {
-            return AddArgumentHelper(key, value.ToString());
+            return AddArgumentHelper(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -127,7 +130,7 @@ namespace Uno.Extras
 #endif
         public ToastNotification AddArgument(string key, double value)
         {
-            return AddArgumentHelper(key, value.ToString());
+            return AddArgumentHelper(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -141,7 +144,7 @@ namespace Uno.Extras
 #endif
         public ToastNotification AddArgument(string key, float value)
         {
-            return AddArgumentHelper(key, value.ToString());
+            return AddArgumentHelper(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -230,6 +233,6 @@ namespace Uno.Extras
 
         private bool _titleSet;
         private bool _usingCustomArguments;
-        private Dictionary<string, string> _genericArguments = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _genericArguments = new Dictionary<string, string>();
     }
 }

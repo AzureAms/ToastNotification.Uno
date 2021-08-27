@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -137,7 +138,7 @@ namespace Uno.Extras
 #endif
         public ToastButton AddArgument(string key, int value)
         {
-            return AddArgumentHelper(key, value.ToString());
+            return AddArgumentHelper(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -151,7 +152,7 @@ namespace Uno.Extras
 #endif
         public ToastButton AddArgument(string key, double value)
         {
-            return AddArgumentHelper(key, value.ToString());
+            return AddArgumentHelper(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -165,7 +166,7 @@ namespace Uno.Extras
 #endif
         public ToastButton AddArgument(string key, float value)
         {
-            return AddArgumentHelper(key, value.ToString());
+            return AddArgumentHelper(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -356,9 +357,10 @@ namespace Uno.Extras
 
         internal bool CanAddArguments()
         {
-            return ActivationType != ToastActivationType.Protocol && !UsingCustomArguments && !ShouldDissmiss;// && !_usingSnoozeActivation;
+            // To Do: Add (!_usingSnoozeActivation) when implemented.
+            return ActivationType != ToastActivationType.Protocol && !UsingCustomArguments && !ShouldDissmiss;
         }
 
-        private Dictionary<string, string> _arguments = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
     }
 }

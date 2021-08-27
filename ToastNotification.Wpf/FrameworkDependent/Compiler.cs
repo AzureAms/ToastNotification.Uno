@@ -88,7 +88,7 @@ namespace Notification.FrameworkDependent
             }
             else
             {
-                var result = compilation.Emit(assemblyStream, manifestResources: resourceDescriptions);
+                _ = compilation.Emit(assemblyStream, manifestResources: resourceDescriptions);
                 dynamicallyCompiledAssembly = Assembly.Load(assemblyStream.ToArray());
             }
 

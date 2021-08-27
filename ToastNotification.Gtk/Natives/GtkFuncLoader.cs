@@ -24,7 +24,7 @@ namespace Notification.Natives
         public static IntPtr Load(string library)
         {
             var libraryEnum = Enum.Parse(_libraryType, library);
-            return _gLibraryType.InvokeStatic<IntPtr>("Load", new object[] { libraryEnum });
+            return _gLibraryType.InvokeStatic<IntPtr>("Load", new [] { libraryEnum });
         }
 
         public static TDelegate LoadFunction<TDelegate>(string library, string functionName) 
