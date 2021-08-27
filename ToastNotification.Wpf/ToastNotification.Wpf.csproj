@@ -22,7 +22,10 @@ This package contains extension functions needed for WPF projects to handle noti
     <PackageTags>Notification;Uno;Wpf</PackageTags>
     <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+<!--
+    // Symbols and RADME.md are not compatible, due to a dotnet pack bug.
     <PackageReadmeFile>README.md</PackageReadmeFile>
+-->
   </PropertyGroup>
 
   <ItemGroup>

@@ -22,7 +22,10 @@ This package contains extension functions needed for WebAssembly projects to han
     <PackageTags>Notification;Uno;Wasm</PackageTags>
     <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+<!--
+    // Symbols and RADME.md are not compatible, due to a dotnet pack bug.
     <PackageReadmeFile>README.md</PackageReadmeFile>
+-->
   </PropertyGroup>
 
   <ItemGroup>
