@@ -272,25 +272,6 @@ namespace Uno.Extras
             return !info.IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(10, 14, 0));
         }
 
-        private static string GetAppropriateArgument(ToastButton button)
-        {
-            if (button.ShouldDissmiss)
-            {
-                return "dismiss,";
-            }
-            switch (button.ActivationType)
-            {
-                case ToastActivationType.Background:
-                    return "background," + button.Arguments;
-                case ToastActivationType.Foreground:
-                    return "foreground," + button.Arguments;
-                case ToastActivationType.Protocol:
-                    return "protocol," + button.Protocol.ToString();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
         private static void HandleArgument(string arg)
         {
             var commaIndex = arg.IndexOf(',');
@@ -313,6 +294,7 @@ namespace Uno.Extras
             }
         }
 
+        // MacOS's Activation needs some more care.
         private static void ActivateForeground(string argument)
         {
             FocusAppAsync().ContinueWith(async (task) =>
@@ -327,11 +309,6 @@ namespace Uno.Extras
                     app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
                 });
             });
-        }
-
-        private static void ActivateBackground(string argument)
-        {
-            throw new NotImplementedException("Uno Platform does not support background tasks");
         }
 
         private static async Task FocusAppAsync()

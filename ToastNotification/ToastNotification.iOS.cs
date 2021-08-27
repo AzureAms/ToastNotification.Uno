@@ -162,25 +162,6 @@ namespace Uno.Extras
             #endregion
         }
 
-        private static string GetAppropriateArgument(ToastButton button)
-        {
-            if (button.ShouldDissmiss)
-            {
-                return "dismiss,";
-            }
-            switch (button.ActivationType)
-            {
-                case ToastActivationType.Background:
-                    return "background," + button.Arguments;
-                case ToastActivationType.Foreground:
-                    return "foreground," + button.Arguments;
-                case ToastActivationType.Protocol:
-                    return "protocol," + button.Protocol.ToString();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
         private static void HandleArgument(string arg)
         {
             var commaIndex = arg.IndexOf(',');
@@ -195,28 +176,12 @@ namespace Uno.Extras
                     ActivateBackground(argContent);
                     break;
                 case "foreground":
-                    ActivateForeground(argContent);
+                    ActivateForeground(argContent, FocusApp);
                     break;
                 case "protocol":
                     _ = Launcher.LaunchUriAsync(new Uri(argContent));
                     break;
             }
-        }
-
-        private static void ActivateForeground(string argument)
-        {
-            FocusApp();
-
-            var app = Windows.UI.Xaml.Application.Current;
-
-            var toastActivatedEventArgs = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
-            System.Diagnostics.Debug.WriteLine($"{toastActivatedEventArgs.Argument == null}");
-            app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
-        }
-
-        private static void ActivateBackground(string argument)
-        {
-            throw new NotImplementedException("Uno Platform does not support background tasks");
         }
 
         private static void FocusApp()

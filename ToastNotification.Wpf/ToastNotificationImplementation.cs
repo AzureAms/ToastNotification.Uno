@@ -200,7 +200,7 @@ namespace Uno.Extras
                 {
                     notifyData.RemoveIcon();
                     innerTcs.SetResult(null);
-                    _ = ActivateApp(toast.Arguments);
+                    _ = ActivateForeground(toast.Arguments);
                 };
 
                 Shell.NotifyIcon(NotificationIconMessage.Modify, notifyData);
@@ -252,7 +252,7 @@ namespace Uno.Extras
             return icon;
         }
 
-        private static async Task ActivateApp(string argument)
+        private static async Task ActivateForeground(string argument)
         {
             var asm = await DynamicAssemblyPromise;
             var type = asm.GetTypes().FirstOrDefault(t => t.Name == "WpfHelpers");
@@ -264,14 +264,9 @@ namespace Uno.Extras
             app.Invoke("OnActivated", new object[] { args });
         }
 
-        private static void ActivateBackground(string argument)
-        {
-            throw new NotImplementedException("Uno Platform does not support background tasks");
-        }
-
         private static async void OnToastClick(this ToastNotification toast, object sender, EventArgs args)
         {
-            await ActivateApp(toast.Arguments).ConfigureAwait(false);
+            await ActivateForeground(toast.Arguments).ConfigureAwait(false);
         }
 
         private static async void OnButtonClick(this ToastButton button, object sender, EventArgs args)
@@ -283,17 +278,17 @@ namespace Uno.Extras
             switch (button.ActivationType)
             {
                 case ToastActivationType.Background:
-                    ActivateBackground(button.Arguments);
+                    ToastNotification.ActivateBackground(button.Arguments);
                 break;
                 case ToastActivationType.Foreground:
-                    await ActivateApp(button.Arguments).ConfigureAwait(false);
+                    await ActivateForeground(button.Arguments).ConfigureAwait(false);
                 break;
                 case ToastActivationType.Protocol:
                     _ = Launcher.LaunchUriAsync(button.Protocol);
                 break;
                 default:
                     Debug.WriteLine($"Unknown activation type: {button.ActivationType}");
-                    await ActivateApp(button.Arguments).ConfigureAwait(false);
+                    await ActivateForeground(button.Arguments).ConfigureAwait(false);
                 break;
             }
         }

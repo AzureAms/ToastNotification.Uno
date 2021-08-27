@@ -120,26 +120,6 @@ namespace Uno.Extras
         // Accoring to https://developer.android.com/reference/android/app/Notification.Builder.html#addAction(android.app.Notification.Action)
         public int GetButtonLimit() => 3;
 
-        private static string GetAppropriateArgument(ToastButton button)
-        {
-            if (button.ShouldDissmiss)
-            {
-                return "dismiss,";
-            }
-            switch (button.ActivationType)
-            {
-                case ToastActivationType.Background:
-                    return "background," + button.Arguments;
-                case ToastActivationType.Foreground:
-                    return "foreground," + button.Arguments;
-                case ToastActivationType.Protocol:
-                    return "protocol," + button.Protocol.ToString();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-        }
-
         private Task<NotificationManager> GetNotificationManager()
         {
             _tcs = new TaskCompletionSource<NotificationManager>();

@@ -35,10 +35,10 @@ namespace Uno.Extras
                 case "dismiss":
                     break;
                 case "background":
-                    ActivateBackground(argContent);
+                    ToastNotification.ActivateBackground(argContent);
                     break;
                 case "foreground":
-                    ActivateForeground(argContent);
+                    ToastNotification.ActivateForeground(argContent, FocusApp);
                     break;
                 case "protocol":
                     _ = Launcher.LaunchUriAsync(new Uri(argContent));
@@ -54,22 +54,6 @@ namespace Uno.Extras
         public override void OnDestroy()
         {
             System.Diagnostics.Debug.WriteLine("Service destroyed.");
-        }
-
-        private void ActivateForeground(string argument)
-        {
-            FocusApp();
-
-            var app = Windows.UI.Xaml.Application.Current;
-
-            var toastActivatedEventArgs = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
-            System.Diagnostics.Debug.WriteLine($"{toastActivatedEventArgs.Argument == null}");
-            app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
-        }
-
-        private void ActivateBackground(string argument)
-        {
-            throw new NotImplementedException("Uno Platform does not support background tasks");
         }
 
         private void FocusApp()

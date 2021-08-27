@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Windows.ApplicationModel.Activation;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace Uno.Extras
@@ -87,7 +88,40 @@ namespace Uno.Extras
             return this;
         }
 
-        internal 
+        internal static string GetAppropriateArgument(ToastButton button)
+        {
+            if (button.ShouldDissmiss)
+            {
+                return "dismiss,";
+            }
+            switch (button.ActivationType)
+            {
+                case ToastActivationType.Background:
+                    return "background," + button.Arguments;
+                case ToastActivationType.Foreground:
+                    return "foreground," + button.Arguments;
+                case ToastActivationType.Protocol:
+                    return "protocol," + button.Protocol.ToString();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        internal static void ActivateForeground(string argument, Action FocusApp = null)
+        {
+            FocusApp();
+
+            var app = Windows.UI.Xaml.Application.Current;
+
+            var toastActivatedEventArgs = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
+            System.Diagnostics.Debug.WriteLine($"{toastActivatedEventArgs.Argument == null}");
+            app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
+        }
+
+        internal static void ActivateBackground(string argument)
+        {
+            throw new NotImplementedException("Uno Platform does not support background tasks");
+        }
 
         #region AlmostCopiedMITLicensedCodeFromWCT
         /// <summary>

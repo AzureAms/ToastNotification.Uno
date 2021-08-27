@@ -59,22 +59,7 @@ namespace Uno.Extras
             {
                 foreach (var button in toast.ToastButtons)
                 {
-                    if (button.ShouldDissmiss)
-                    {
-                        actions.Add("dismiss,");
-                    }
-                    else if (button.Protocol != null)
-                    {
-                        actions.Add($"protocol,{button.Protocol}");
-                    }
-                    else if (button.ActivationType == ToastActivationType.Background)
-                    {
-                        actions.Add($"background,{button.Arguments}");
-                    }
-                    else
-                    {
-                        actions.Add($"foreground,{button.Arguments}");
-                    }
+                    actions.Add(ToastNotification.GetAppropriateArgument(button));
                     actions.Add(button.Content);
                 }
             }
@@ -116,7 +101,7 @@ namespace Uno.Extras
             }
             if (arg.key == "default")
             {
-                ActivateApp(_notificationIds[arg.id]);
+                ToastNotification.ActivateForeground(_notificationIds[arg.id], FocusApp);
             }
             else
             {
@@ -135,16 +120,16 @@ namespace Uno.Extras
                         await Launcher.LaunchUriAsync(new Uri(data));
                     break;
                     case "background":
-                        ActivateBackground(data);
+                        ToastNotification.ActivateBackground(data);
                     break;
                     case "foreground":
-                        ActivateApp(data);
+                        ToastNotification.ActivateForeground(data, FocusApp);
                     break;
                     default:
 #if DEBUG
                         Console.WriteLine($"Unknown activation type: {operation}");
 #endif
-                        ActivateApp(data);
+                        ToastNotification.ActivateForeground(data, FocusApp);
                     break;
                 }
             }
@@ -161,22 +146,13 @@ bail:       _dictionarySemaphore.Release();
             _dictionarySemaphore.Release();
         }
 
-        private static void ActivateApp(string argument)
+        private static void FocusApp()
         {
             var window = GtkHost.Window;
 
             // A valid timestamp is required, else the 
             // window will not successfully activate.
             window.PresentWithTime(TryGetTimestamp());
-
-            var app = Windows.UI.Xaml.Application.Current;
-            var args = Reflection.Construct<ToastNotificationActivatedEventArgs>(argument);
-            app.Invoke("OnActivated", new object[] { args });
-        }
-
-        private static void ActivateBackground(string argument)
-        {
-            throw new NotImplementedException("Uno Platform does not support background tasks");
         }
 
         private static Task InvokeAsync(Action a)

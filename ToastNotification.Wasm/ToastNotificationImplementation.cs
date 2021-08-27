@@ -108,6 +108,7 @@ namespace Uno.Extras
             }
         }
 
+        // This is different from GetAppropriateButton.
         private static string GetAppropriateType(this ToastButton button)
         {
             if (button.ShouldDissmiss)
