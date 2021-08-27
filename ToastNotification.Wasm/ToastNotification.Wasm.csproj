@@ -22,16 +22,36 @@ This package contains extension functions needed for WebAssembly projects to han
     <PackageTags>Notification;Uno;Wasm</PackageTags>
     <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+<!--
+    // Symbols and RADME.md are not compatible, due to a dotnet pack bug.
     <PackageReadmeFile>README.md</PackageReadmeFile>
+-->
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.3.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Uno.Foundation.Runtime.WebAssembly" Version="3.8.13" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ToastNotification\ToastNotification.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <ConfigFiles Include="tsconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="WasmScripts\**\*.js" />
+    <UpToDateCheckInput Include="ts\**\*" />
+    <UpToDateCheckInput Include="tsBindings\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="WasmScripts\" />
   </ItemGroup>
 
   <ItemGroup>

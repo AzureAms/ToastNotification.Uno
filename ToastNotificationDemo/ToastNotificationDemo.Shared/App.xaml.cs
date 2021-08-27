@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Uno.Extras;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -180,6 +181,52 @@ namespace ToastNotificationDemo
             });
 
             global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = factory;
+        }
+
+        protected override void OnActivated(IActivatedEventArgs e)
+        {
+            Console.WriteLine("App received activated signal.");
+            Console.WriteLine(e.GetType().FullName);
+            if (e.GetType() == typeof(ToastNotificationActivatedEventArgs))
+            {
+                Console.WriteLine(e is ToastNotificationActivatedEventArgs);
+                // This is not acceptable, either.
+                //var toastActivationArgs = e as ToastNotificationActivatedEventArgs;
+                var toastActivationArgs = (ToastNotificationActivatedEventArgs)e;
+                ToastArguments args = ToastArguments.Parse(toastActivationArgs.Argument);
+
+                var shouldPlay = args.Contains("ShouldPlay") ? Convert.ToBoolean(int.Parse(args["ShouldPlay"])) : false;
+
+                var contentDialog = new ContentDialog();
+                contentDialog.Content = shouldPlay ? "Have a nice day!" : "Hello from Toast!";
+                contentDialog.PrimaryButtonText = "Close";
+
+                _ = contentDialog.ShowAsync();
+
+            }
+            // Doesn't work on WASM.
+            // Handle notification activation
+            //if (e is ToastNotificationActivatedEventArgs toastActivationArgs)
+            //{
+            //    Console.WriteLine("ok here");
+            //    Console.WriteLine($"Args: {toastActivationArgs.Argument}");
+            //    // Obtain the arguments from the notification
+            //ToastArguments args = ToastArguments.Parse(toastActivationArgs.Argument);
+
+            //    //// Obtain any user input (text boxes, menu selections) from the notification
+            //    //ValueSet userInput = toastActivationArgs.UserInput;
+
+            //    // TODO: Show the corresponding content
+
+            //    var shouldPlay = args.Contains("ShouldPlay") ? Convert.ToBoolean(int.Parse(args["ShouldPlay"])) : false;
+
+            //    var contentDialog = new ContentDialog();
+            //    contentDialog.Content = shouldPlay ? "Have a nice day!" : "Hello from Toast!";
+            //    contentDialog.PrimaryButtonText = "Close";
+
+            //    _ = contentDialog.ShowAsync();
+            //}
+
         }
     }
 }

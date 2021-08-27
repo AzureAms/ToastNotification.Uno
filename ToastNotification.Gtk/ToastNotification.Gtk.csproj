@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Uno.Extras</RootNamespace>
   </PropertyGroup>
 
@@ -22,15 +22,24 @@ This package contains extension functions needed for GTK projects to handle noti
     <PackageTags>Notification;Uno;Gtk</PackageTags>
     <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+<!--
+    // Symbols and RADME.md are not compatible, due to a dotnet pack bug.
     <PackageReadmeFile>README.md</PackageReadmeFile>
+-->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="GtkSharp" Version="3.24.24.34" />
+    <PackageReference Include="Tmds.DBus" Version="0.9.1" />
+    <PackageReference Include="Uno.UI.Runtime.Skia.Gtk" Version="3.8.13" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ToastNotification\ToastNotification.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Natives\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -22,10 +22,36 @@ This package contains extension functions needed for WPF projects to handle noti
     <PackageTags>Notification;Uno;Wpf</PackageTags>
     <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+<!--
+    // Symbols and RADME.md are not compatible, due to a dotnet pack bug.
     <PackageReadmeFile>README.md</PackageReadmeFile>
+-->
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="FrameworkDependent\Helpers.cs" />
+    <Compile Remove="FrameworkDependent\IconInterop.cs" />
+    <Compile Remove="FrameworkDependent\ScreenInterop.cs" />
+    <Compile Remove="FrameworkDependent\ToastNotificationLoader.cs" />
+    <Compile Remove="FrameworkDependent\WpfHelpers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="FrameworkDependent\ToastNotificationXaml.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="FrameworkDependent\Helpers.cs" />
+    <EmbeddedResource Include="FrameworkDependent\IconInterop.cs" />
+    <EmbeddedResource Include="FrameworkDependent\ScreenInterop.cs" />
+    <EmbeddedResource Include="FrameworkDependent\ToastNotificationLoader.cs" />
+    <EmbeddedResource Include="FrameworkDependent\ToastNotificationXaml.xaml" />
+    <EmbeddedResource Include="FrameworkDependent\WpfHelpers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
@@ -33,6 +59,12 @@ This package contains extension functions needed for WPF projects to handle noti
   <ItemGroup>
     <ProjectReference Include="..\ToastNotification\ToastNotification.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>ToastNotification.Wpf.RuntimeCompilationTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>	
 
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\"/>
@@ -53,5 +85,5 @@ This package contains extension functions needed for WPF projects to handle noti
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
-
+  
 </Project>

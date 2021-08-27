@@ -11,5 +11,6 @@
         <Button x:Name="ToasterUrl" Content="Toast from Url!" Click="ToasterUrl_Click"/>
         <Button x:Name="ToasterStream" Content="Toast from Stream!" Click="ToasterStream_Click"/>
         <Button x:Name="ToasterResource" Content="Toast from Resource!" Click="ToasterResource_Click"/>
+        <Button x:Name="ToasterAction" Content="Toast with Actions!" Click="ToasterAction_Click"/>
     </StackPanel>
 </Page>

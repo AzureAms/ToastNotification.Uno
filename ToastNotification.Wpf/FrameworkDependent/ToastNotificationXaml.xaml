@@ -1,0 +1,130 @@
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="400"
+             Height="Auto"
+             Width="400"
+             Background="Transparent">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="Win10NotificationButtonBackground" Color="#626262"/>
+        <SolidColorBrush x:Key="Win10NotificationButtonPressedBackground" Color="#838383"/>
+        <SolidColorBrush x:Key="Win10NotificationButtonBorderBrush" Color="#A1A1A1"/>
+
+        <Style TargetType="{x:Type Button}" x:Key="Win10NotificationButtonStyle">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="{StaticResource Win10NotificationButtonBackground}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderBrush" Value="#A1A1A1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Rectangle Name="BackgroundRect" Fill="#2E2E2E" RadiusX="8" RadiusY="8" Opacity="0.9"/>
+        <Grid Margin="12,15,12,15">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="24"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Row="0" Grid.ColumnSpan="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" 
+                                Grid.Column="0" 
+                                VerticalAlignment="Center">
+                        <Image Width="16" Height="16" Source="{Binding AppIconImageSource, Mode=OneWay}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Path=AppName, Mode=OneWay}" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    </StackPanel>
+
+                    <TextBlock 
+                        Text="×" 
+                        Grid.Column="1" 
+                        FontSize="24" 
+                        VerticalAlignment="Center"
+                        >
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="False">
+                                        <Setter Property="Foreground" Value="#A4A4A4"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                        <TextBlock.InputBindings>
+                            <MouseBinding Command="{Binding CloseButtonClickCommand, Mode=OneWay}" MouseAction="LeftClick"/>
+                        </TextBlock.InputBindings>
+                    </TextBlock>
+                </Grid>
+
+
+                <Image Name="ContentImage" 
+                       VerticalAlignment="Top"
+                       Width="60" 
+                       Height="60" 
+                       Grid.Row="1"
+                       Grid.Column="0"
+                       Stretch="UniformToFill"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Source="{Binding ContentImageSource, Mode=OneWay}"/>
+                <StackPanel Name="ContentTextPanel" Grid.Row="1" Grid.Column="2">
+                    <TextBlock Text="{Binding Path=Title, Mode=OneWay}" Foreground="White" FontSize="16" FontWeight="DemiBold"/>
+                    <TextBlock Text="{Binding Path=Description, Mode=OneWay}" Foreground="#AFB1B2" FontSize="16"/>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="4px"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Button Name="PrimaryButton"
+                    Content="{Binding Path=PrimaryButtonText, Mode=OneWay}"
+                    Grid.Column="0"
+                    BorderThickness="0"
+                    Foreground="White"
+                    Command="{Binding Path=PrimaryButtonClickCommand, Mode=OneWay}"
+                    Style="{StaticResource Win10NotificationButtonStyle}">
+                </Button>
+                <Button Name="SecondaryButton"
+                    Content="{Binding Path=SecondaryButtonText, Mode=OneWay}"
+                    Grid.Column="2"
+                    BorderThickness="0"
+                    Foreground="White"
+                    Command="{Binding Path=SecondaryButtonClickCommand, Mode=OneWay}"
+                    Style="{StaticResource Win10NotificationButtonStyle}"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
