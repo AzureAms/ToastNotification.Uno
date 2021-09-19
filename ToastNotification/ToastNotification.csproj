@@ -37,7 +37,7 @@ For some platforms, you may need to install platform-specific packages.
 -->
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.16299' " Include="Uno.UI" Version="3.8.13"/>
+    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.16299' " Include="Uno.UI" Version="3.10.7"/>
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">
      <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.2" />

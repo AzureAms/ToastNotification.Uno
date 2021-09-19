@@ -31,7 +31,7 @@ This package contains extension functions needed for GTK projects to handle noti
   <ItemGroup>
     <PackageReference Include="GtkSharp" Version="3.24.24.34" />
     <PackageReference Include="Tmds.DBus" Version="0.9.1" />
-    <PackageReference Include="Uno.UI.Runtime.Skia.Gtk" Version="3.8.13" />
+    <PackageReference Include="Uno.UI.Runtime.Skia.Gtk" Version="3.10.7" />
   </ItemGroup>
 
   <ItemGroup>
