@@ -9,6 +9,7 @@ on:
     branches:
     - master
     - dev/**
+    - release/**
     paths:
     - ToastNotification/**
     - ToastNotification.Wasm/**
