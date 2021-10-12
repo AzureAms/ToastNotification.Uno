@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UserNotifications;
-using Windows.ApplicationModel.Activation;
 using Windows.System;
 
 namespace Uno.Extras
@@ -17,14 +16,12 @@ namespace Uno.Extras
         // Keeping a list of all categories for all notifications shown
         // may lead to serious resource leaks.
         private static List<UNNotificationCategory> _categories = new List<UNNotificationCategory>();
-        private static TaskCompletionSource<bool> _tcs;
         private static bool? _permission;
         private Guid? id;
 
         public async Task Show()
         {
-            #region Untested Code
-            _permission = _permission ?? await QueryPermissionAsync().ConfigureAwait(false);
+            _permission = _permission ?? await QueryPermissionAsync();
 
             if ((bool)_permission)
             {
@@ -41,15 +38,18 @@ namespace Uno.Extras
                     // We don't need to free this file.
                     // This file will be automatically moved by the System
                     // to some Attachment Data Folder.
-                    var tempPath = await CreateTempFileAsync(stream);
+                    // The file must be an image file, giving a random ".tmp" file
+                    // makes the system throw an error.
+                    var tempPath = await CreateTempFileAsync(stream, ".png");
                     stream.Dispose();
+
                     content.Attachments = new[]
                     {
                         UNNotificationAttachment.FromIdentifier(
                             string.Empty,
                             new NSUrl(tempPath, false),
                             (NSDictionary)null,
-                            out var error)
+                            out var _)
                     };
                 }
 
@@ -93,45 +93,26 @@ namespace Uno.Extras
 
                 var request = UNNotificationRequest.FromIdentifier(id.ToString(), content, trigger);
 
-                var completionSource = new TaskCompletionSource<object>();
-
-                UNUserNotificationCenter.Current.AddNotificationRequest(request, (err) =>
-                {
-                    if (err != null)
-                    {
-                        completionSource.SetException(new InvalidOperationException($"Failed to schedule notification: {err}"));
-                    }
-                    completionSource.SetResult(null);
-                });
-
-                await completionSource.Task.ConfigureAwait(false);
+                await UNUserNotificationCenter.Current.AddNotificationRequestAsync(request);
             }
         }
 
-        public static Task<bool> QueryPermissionAsync()
+        public static async Task<bool> QueryPermissionAsync()
         {
-            if (_tcs != null)
-            {
-                return _tcs.Task;
-            }
-
-            lock (_tcs)
-            {
-                _tcs = new TaskCompletionSource<bool>();
-            }
-
             // request the permission to use local notifications
-            UNUserNotificationCenter.Current.RequestAuthorization(UNAuthorizationOptions.Alert, (approved, err) =>
-            {
-                _tcs.SetResult(approved);
-            });
+            var (approved, err) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(UNAuthorizationOptions.Alert);
 
-            return _tcs.Task;
+            System.Diagnostics.Debug.WriteLine($"[Notifications]: Permission status: {err}");
+
+            return approved;
         }
 
-        private static async Task<string> CreateTempFileAsync(Stream stream)
+        private static async Task<string> CreateTempFileAsync(Stream stream, string extension)
         {
             var fileName = Path.GetTempFileName();
+            File.Delete(fileName);
+            fileName = Path.ChangeExtension(fileName, extension);
+            
             var fileStream = File.OpenWrite(fileName);
             await stream.CopyToAsync(fileStream);
             fileStream.Dispose();
@@ -148,18 +129,14 @@ namespace Uno.Extras
 
             return UNNotificationActionOptions.None;
         }
-        #endregion
 
-        // MacOS has only one Action Button, but offers a drop-down menu
-        // with more options.
+        // iOS opens a menu with a lot of options.
         public int GetButtonLimit() => -1;
 
         static ToastNotification()
         {
-            #region Untested Code
             var currentCenter = UNUserNotificationCenter.Current;
             currentCenter.Delegate = new NotificationCenterDelegates();
-            #endregion
         }
 
         private static void HandleArgument(string arg)
@@ -191,7 +168,6 @@ namespace Uno.Extras
             // has already told the system to do our job.
         }
 
-        #region Untested Code
         private class NotificationCenterDelegates : UNUserNotificationCenterDelegate
         {
             public override void DidReceiveNotificationResponse(
@@ -211,7 +187,7 @@ namespace Uno.Extras
                     {
                         System.Diagnostics.Debug.WriteLine("Warning: Default argument is null.");
                     }
-                    var argument = obj.ToString();
+                    var argument = obj?.ToString();
                     HandleArgument(argument);
                 }
                 else if (response.IsCustomAction)
@@ -229,7 +205,6 @@ namespace Uno.Extras
                 completionHandler(UNNotificationPresentationOptions.Alert);
             }
         }
-        #endregion
     }
 }
 #endif
