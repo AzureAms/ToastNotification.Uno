@@ -5,9 +5,10 @@
     xmlns:local="using:ToastNotificationDemo"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="using:Uno.UI.Toolkit"
     mc:Ignorable="d">
 
-    <StackPanel>
+    <StackPanel toolkit:VisibleBoundsPadding.PaddingMask="All">
         <Button x:Name="ToasterUrl" Content="Toast from Url!" Click="ToasterUrl_Click"/>
         <Button x:Name="ToasterStream" Content="Toast from Stream!" Click="ToasterStream_Click"/>
         <Button x:Name="ToasterResource" Content="Toast from Resource!" Click="ToasterResource_Click"/>
