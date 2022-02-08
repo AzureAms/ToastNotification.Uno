@@ -8,7 +8,6 @@
     <TargetFrameworks>uap10.0.16299;netstandard2.0;xamarinios10;xamarinmac20;monoandroid10.0;</TargetFrameworks>
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
-    <UseWPF Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">true</UseWPF>
 	<TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
 	<TargetPlatformMinVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.16299.0</TargetPlatformMinVersion>
 	<RootNamespace>Uno.Extras</RootNamespace>
@@ -31,13 +30,10 @@ For some platforms, you may need to install platform-specific packages.
     <PackageTags>Notification;Uno;UWP;Wasm;Wpf;Gtk;Android;MacOS</PackageTags>
     <RepositoryUrl>https://github.com/AzureAms/ToastNotification.Uno</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-<!--
-    // Symbols and RADME.md are not compatible, due to a dotnet pack bug.
     <PackageReadmeFile>README.md</PackageReadmeFile>
--->
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.16299' " Include="Uno.UI" Version="3.10.7"/>
+    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.16299' " Include="Uno.UI" Version="4.0.13"/>
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">
      <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.2" />
