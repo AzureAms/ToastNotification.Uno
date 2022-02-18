@@ -107,6 +107,10 @@ namespace Uno.Extras
             }
         }
 
+        // The region below uses Reflection to manually invoke the application 
+        // lifecycle callbacks for Uno targets. This is not applicable for 
+        // UWP and also causes compilation errors for lower targets.
+#if !NETFX_CORE
         internal static void ActivateForeground(string argument, Action FocusApp = null)
         {
             FocusApp();
@@ -117,6 +121,7 @@ namespace Uno.Extras
             System.Diagnostics.Debug.WriteLine($"{toastActivatedEventArgs.Argument == null}");
             app.Invoke("OnActivated", new[] { toastActivatedEventArgs });
         }
+#endif
 
         internal static void ActivateBackground(string argument)
         {
