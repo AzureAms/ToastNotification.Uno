@@ -30,7 +30,7 @@ This package contains extension functions needed for WebAssembly projects to han
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Uno.Foundation.Runtime.WebAssembly" Version="4.0.13" />
+    <PackageReference Include="Uno.Foundation.Runtime.WebAssembly" Version="4.5.12" />
   </ItemGroup>
 
   <ItemGroup>

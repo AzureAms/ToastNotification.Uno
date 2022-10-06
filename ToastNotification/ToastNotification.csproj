@@ -33,7 +33,7 @@ For some platforms, you may need to install platform-specific packages.
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.15063' " Include="Uno.UI" Version="4.0.13"/>
+    <PackageReference Condition=" '$(TargetFramework)' != 'uap10.0.15063' " Include="Uno.UI" Version="4.0.13" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0.15063' ">
      <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.2" />
@@ -59,7 +59,7 @@ For some platforms, you may need to install platform-specific packages.
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -75,7 +75,8 @@ For some platforms, you may need to install platform-specific packages.
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Uno.UI" Version="4.5.12" />
   </ItemGroup>
   
 </Project>
